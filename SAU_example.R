@@ -9,10 +9,6 @@ devtools::install_github("ropensci/seaaroundus")
 #load the seaaroundus package
 library(seaaroundus)
 
-öbshdfljbndslfjbnlksgjnbkljfgnlkbjsnflkgjbnslkfjgnbkljfgnlbksjnlgkjn
-
-
-hallo i bims
 #list the assigned IDs for each Exclusive Economic Zone (EEZ). NB: The EEZ is the zone adjacent to the coast, in which the corresponding country has the sovereign right to fish.
 listregions('eez')
 
