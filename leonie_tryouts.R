@@ -1,3 +1,8 @@
+library(seaaroundus)
+library(ggplot2)
+library(tidyverse)
+library(viridis)
+
 wkt <- "POLYGON((2.37 43.56,13.18 43.56,13.18 35.66,2.37 35.66,2.37 43.56))"
 getcells(wkt)
 
@@ -48,11 +53,37 @@ df1 <- df_fishing_all
 df2 <- df1 %>% gather(., key="country", value="tonnage", -c(years))
 df3 <- df2 %>% group_by(country) %>% summarise(avg=mean(tonnage))
 
-df4 <- df3 %>% filter(avg<2000000)
-
 ggplot(df2, aes(x=years, y=tonnage))+
   geom_area(aes(fill=country))+
   theme(legend.position = "none")
+
+df4 <- df3 %>% filter(avg<2000000)
+df5 <- df3 %>% filter(avg>2000000) 
+
+fishing_high <- df2 %>% filter(country %in% df5$country) #all countries with more than 2mio catches
+others <- df2 %>% filter(country %in% df4$country) %>%
+  group_by(years) %>% summarise(tonnage = sum(tonnage)) %>%
+  mutate(country = "Others") %>% select(years,country,tonnage)
+
+fish.final <- bind_rows(fishing_high,others)
+
+#ggplot of fishing_high
+ggplot(fishing_high, aes(x=years, y=tonnage))+
+  geom_area(aes(fill=country))+
+  theme(legend.position = "none")
+
+#ggplot of fishing + others
+ggplot(fish.final, aes(x=years, y=tonnage))+
+  geom_area(aes(fill=country))+
+  theme(legend.position = "right")
+
+#ggplot of fishing + others seperated
+ggplot(fish.final, aes(x= years, y=tonnage)) +
+  geom_area(aes(fill=factor(country, levels=c("Others", df5$country))))+
+  theme(legend.position = "right")+
+  guides(fill=guide_legend(title="Countries"))
+  #scale_fill_hue(l=20)
+
 
 # ---- possible question 2 ----
 
@@ -61,24 +92,52 @@ countrynames <- countrynames[-c(61,93,192)]
 countryids <- regiondf$id
 countryids <- countryids[-c(61,93,192)]
 
-df_Q2<- catchdata(region='fishing-entity', id=countryids[1], measure='tonnage', dimension='catchtype')
-View(df_Q2)
-
 df_Q2n <- lapply(X = countryids, FUN = catchdata, region="fishing-entity", measure="tonnage", dimension="catchtype")
 
-df_Q2n1 <- df_Q2n[[1]] #%>% mutate(country=countrynames[5])
-df_Q2n1$country <- countrynames[1]
+#initial data.frame
+df_Q2 <- df_Q2n[[1]]
+df_Q2$country <- countrynames[1]
 
-df_Q2n2 <- df_Q2n[[2]]
-df_Q2n2$country <- countrynames[2]
-
-rbind(df_Q2n1, df_Q2n2)
-
+#get all entries of list into one data.frame
 for (i in 1:length(df_Q2n)){
-  addc <- df_Q2n[[i]]
-  addc$country <- countrynames[i]
-  rbind()
+  df_new <- df_Q2n[[i]]
+  
+  if (ncol(df_new)<3)
+    df_new$discards <- 0
+  
+  df_new$country <- countrynames[i]
+  
+  df_Q2 <- bind_rows(df_Q2, df_new)
 }
 
 
+
 # ---- possible question 3 ----
+
+lr_fish.ent <- regiondf # country-id Germany:276 <-> id: 66
+lr_eez <- listregions("eez")
+
+sec_ger <- catchdata(region="fishing-entity", id=66, measure="value", dimension="sector")
+sec_ger <- bind_cols("id"=rownames(sec_ger), sec_ger)
+
+sec_ger2 <- sec_ger %>% filter(years>=1960, years<=2010) %>% select(-industrial) %>% gather(., key="sector", value, -c(id, years))
+
+col_fac <- c("darkblue", "orange", "darkgreen")
+
+ggplot(sec_ger2, aes(x=years, y=value))+
+  geom_area(aes(fill=sector))+
+  scale_fill_brewer(palette = "Dark2")
+
+
+
+# ---- own thoughts ----
+
+library(plyr)
+
+eezB_ger <- catchdata(region="eez", id=278, measure="value", dimension="taxon")
+eezB_ger <- bind_cols("id"=rownames(eezB_ger), eezB_ger)
+eezN_ger <- catchdata(region="eez", id=277, measure="value", dimension="taxon")
+eezN_ger <- bind_cols("id"=rownames(eezN_ger), eezN_ger)
+
+popo <- join(sec_ger, eezB_ger, by="id", match="first")
+
