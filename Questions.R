@@ -133,3 +133,43 @@ col_fac <- c("darkblue", "orange", "darkgreen")
 ggplot(sec_ger2, aes(x=years, y=value))+
   geom_area(aes(fill=sector))+
   scale_fill_brewer(palette = "Dark2")
+
+
+
+#===============OWN IDEAS==================
+
+#==========================================
+### Welche Länder fischen im Mittelmeer?
+#==========================================
+
+
+med <- catchdata(region="lme", 26, dimension="country", measure="tonnage")
+black <- catchdata(region="lme", 62, dimension="country", measure="tonnage")
+
+medblack <- join(med, black, by="years", type="full", match="first")
+View(medblack)
+medblack2 <- medblack %>% gather(., key="country", value="tonnage", -c(years))
+med2 <- med %>% gather(., key="country", value="tonnage", -c(years))
+
+ggplot(med2, aes(x=years, y=tonnage))+
+  geom_area(aes(fill=factor(country)))+
+  theme(legend.position = "right")+
+  #scale_fill_hue (l=40)+
+  guides(fill=guide_legend(title="Countries"))
+
+medhigh <- catchdata(region="fao", 37, dimension="country", measure="tonnage")
+medhigh2 <- medhigh %>% gather(., key="country", value="tonnage", -c(years))
+
+ggplot(medhigh2, aes(x=years, y=tonnage))+
+  geom_area(aes(fill=factor(country)))+
+  theme(legend.position = "right")+
+  scale_fill_hue(l=40)+
+  guides(fill=guide_legend(title="Countries"))+
+  labs(title="FAO")
+
+
+ggplot(medblack2, aes(x=years, y=tonnage))+
+  geom_area(aes(fill=factor(country)))+
+  theme(legend.position = "right")+
+  scale_fill_hue (l=40)+
+  guides(fill=guide_legend(title="Countries"))
