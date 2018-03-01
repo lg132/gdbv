@@ -2,7 +2,7 @@
 # Question 1: Visualize who is catching how much globally:
 #=============================================================================
 
-library(gglot2)
+library(ggplot2)
 library(tidyr)
 library(dplyr)
 library(seaaroundus)
@@ -93,13 +93,43 @@ for (i in 1:length(df_Q2n)){
   df_Q2 <- bind_rows(df_Q2, df_new)
 }
 
-#read in:
+#write and read in again:
+#write.table(df_Q2, "df_Q2", sep="\t")
 #df_Q2 <- read.delim("~/Dropbox/GeoVis/df_Q2") 
 
-# ----- calculate percentage of landings and discards
-df.ex2 <- df_Q2 %>% group_by(years) %>% summarise(landings =sum(landings), discards=sum(discards))
-df.ex2 <- df.ex2 %>% mutate(total =( landings+ discards)) %>% 
-  mutate(percilandi = (landings/total)) %>% 
-  mutate(percidiscardi = (discards/total))
+# ------ calculate percentage of landings and discards
+
+df_Q2p <- df_Q2 %>% group_by(years) %>% 
+  summarise(landings =sum(landings), discards=sum(discards)) %>%  #for all countries
+  mutate(total =( landings+ discards)) %>%  
+  mutate(percilandi = (landings/total)) %>%        #landings in percent
+  mutate(percidiscardi = (discards/total)) %>%     #discards in percent
+  select(-landings, -discards, -total) %>% gather(., key="catchtype", value="percentage", -years) 
+                                                   # preparing for ggplot
+#------- plot 
+ggplot(df_Q2p, aes(x=years, y=percentage))+
+  geom_area(aes(fill=catchtype))+
+  scale_fill_brewer(palette = "Dark2")
 
 
+#=============================================================================
+# Question 3: Filter data for the fishing_entity “Germany”.
+#=============================================================================
+
+lr_fish.ent <- regiondf # country-id Germany:276 <-> id: 66
+lr_eez <- listregions("eez")
+
+#data frame with values of every sector (within Germany):
+sec_ger <- catchdata(region="fishing-entity", id=66, measure="value", dimension="sector") 
+sec_ger <- bind_cols("id"=rownames(sec_ger), sec_ger)  
+
+#without "industrial" to see the smaller sectors better:
+sec_ger2 <- sec_ger %>% filter(years>=1960, years<=2010) %>% select(-industrial) %>% gather(., key="sector", value, -c(id, years))
+
+
+#----------plot:
+col_fac <- c("darkblue", "orange", "darkgreen")
+
+ggplot(sec_ger2, aes(x=years, y=value))+
+  geom_area(aes(fill=sector))+
+  scale_fill_brewer(palette = "Dark2")
