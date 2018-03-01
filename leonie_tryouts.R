@@ -26,19 +26,19 @@ countryids <- countryids[-c(61,93,192)]
 df_fishing_all<- catchdata('fishing-entity', countryids[1], measure='tonnage', dimension='country')
 View(df_fishing_all)
 
-for (i in 2:length(countryids)){ #beginning with 2.column (first one is year)
-  newcol<- catchdata('fishing-entity', countryids[i], measure='tonnage', dimension='country') 
+#for (i in 2:length(countryids)){ #beginning with 2.column (first one is year)
+#  newcol<- catchdata('fishing-entity', countryids[i], measure='tonnage', dimension='country') 
   #every column is the time series of fish catches for one country
-  df_fishing_all[countrynames[i]] <-newcol[,2]
+#  df_fishing_all[countrynames[i]] <-newcol[,2]
   #add this column to the big data frame 
-}
+#}
 
 #save data.frame
-write.table(df_fishing_all, "fishing_all", sep="\t")
+#write.table(df_fishing_all, "fishing_all", sep="\t")
 
 #Victoria's data.frame
-#df_fishing_all <- source("/home/leonie/Dropbox/GeoVis/df_fishing_all.Rdmpd")
-
+df_fishing_all <- source("df_fishing_all.Rdmpd")
+df_fishing_all <- df_fishing_all[[1]]
 
 # Example stacked chart: http://ggplot2.tidyverse.org/reference/position_stack.html
 series <- data.frame(
@@ -88,14 +88,9 @@ ggplot(fish.final, aes(x= years, y=tonnage)) +
 
 # ---- possible question 2 ----
 
-countrynames <- regiondf$title
-countrynames <- countrynames[-c(61,93,192)]
-countryids <- regiondf$id
-countryids <- countryids[-c(61,93,192)]
-
-list_Q2 <- lapply(X = countryids, FUN = catchdata, region="fishing-entity", measure="tonnage", dimension="catchtype")
-
-write.table(list_Q2, "list_Q2", sep="\t")
+#list_Q2 <- lapply(X = countryids, FUN = catchdata, region="fishing-entity", measure="tonnage", dimension="catchtype")
+#write.table(list_Q2, "list_Q2", sep="\t")
+list_Q2 <- read.delim("list_Q2")
 
 # create initial data.frame to be filled with remaining list entries
 df_Q2 <- list_Q2[[1]]
@@ -114,7 +109,7 @@ for (i in 2:length(list_Q2)){
   df_Q2 <- bind_rows(df_Q2, df_new)
 }
 
-write.table(df_Q2, "df_Q2", sep="\t")
+#write.table(df_Q2, "df_Q2", sep="\t")
 
 df_Q2p <- df_Q2 %>% group_by(years) %>% 
   summarise(landings =sum(landings), discards=sum(discards)) %>%
@@ -130,15 +125,13 @@ ggplot(df_Q2p, aes(x=years, y=percentage))+
 
 # ---- possible question 3 ----
 
-lr_fish.ent <- regiondf # country-id Germany:276 <-> id: 66
-lr_eez <- listregions("eez")
+fish_ent <- listregions(region="fishing-entity")
+eez <- listregions(region="eez")
 
 sec_ger <- catchdata(region="fishing-entity", id=66, measure="value", dimension="sector")
 sec_ger <- bind_cols("id"=rownames(sec_ger), sec_ger)
 
 sec_ger2 <- sec_ger %>% filter(years>=1960, years<=2010) %>% select(-industrial) %>% gather(., key="sector", value, -c(id, years))
-
-col_fac <- c("darkblue", "orange", "darkgreen")
 
 ggplot(sec_ger2, aes(x=years, y=value))+
   geom_area(aes(fill=sector))+
@@ -157,13 +150,22 @@ eezN_ger <- bind_cols("id"=rownames(eezN_ger), eezN_ger)
 
 join_ger <- join(sec_ger, eezB_ger, by="id", type="full", match="first")
 
-fish_ent <- listregions(region="fishing-entity")
-eez <- listregions(region="eez")
 lme <- listregions(region="lme")
 rfmo <- listregions(region="rfmo")
 fao <- listregions(region="fao")
+hs <- listregions("highseas")
 
 # get catchdata for fish species in NorthSea (id=22 in lme)
-lme_NS <- catchdata(region="lme", id=22)
+lme_NS <- catchdata(region="lme", id=22, dimension="reporting-status")
 
-catchdata(region="eez", id=52, dimension="functionalgroup")
+# get ...
+glob_sec_ger <-catchdata(region="global", id=66, dimension="sector")
+
+# get catchtypes for germany
+glob_ct_ger <- catchdata(region="global", id=66, dimension="catchtype")
+colnames(glob_ct_ger) <- c("years", "landings_global", "discards_global")
+eezB_ct_ger <- catchdata(region="eez", id=278, dimension="catchtype")
+colnames(eezB_ct_ger) <- c("years", "landings_BalticSea", "discards_BalticSea")
+
+join_ct_ger <- join(glob_ct_ger, eezB_ct_ger, by="years", type="full", match="first")
+
