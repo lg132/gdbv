@@ -92,7 +92,7 @@ countrynames <- countrynames[-c(61,93,192)]
 countryids <- regiondf$id
 countryids <- countryids[-c(61,93,192)]
 
-df_Q2n <- lapply(X = countryids, FUN = catchdata, region="fishing-entity", measure="tonnage", dimension="catchtype")
+system.time(df_Q2n <- lapply(X = countryids, FUN = catchdata, region="fishing-entity", measure="tonnage", dimension="catchtype"))
 
 #initial data.frame
 df_Q2 <- df_Q2n[[1]]
@@ -141,3 +141,4 @@ eezN_ger <- bind_cols("id"=rownames(eezN_ger), eezN_ger)
 
 popo <- join(sec_ger, eezB_ger, by="id", match="first")
 
+View(popo)
