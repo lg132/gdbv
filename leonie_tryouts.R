@@ -8,6 +8,7 @@ getcells(wkt)
 
 getcelldata(2004, cells = 89568)
 ex <- getcelldata(2008, cells = c(89568, 89569))
+ex
 
 ?marinetrophicindex
 marinetrophicindex(region = "eez", id = 76, chart=T)
@@ -92,24 +93,39 @@ countrynames <- countrynames[-c(61,93,192)]
 countryids <- regiondf$id
 countryids <- countryids[-c(61,93,192)]
 
-df_Q2n <- lapply(X = countryids, FUN = catchdata, region="fishing-entity", measure="tonnage", dimension="catchtype")
+list_Q2 <- lapply(X = countryids, FUN = catchdata, region="fishing-entity", measure="tonnage", dimension="catchtype")
 
-#initial data.frame
-df_Q2 <- df_Q2n[[1]]
+write.table(list_Q2, "list_Q2", sep="\t")
+
+# create initial data.frame to be filled with remaining list entries
+df_Q2 <- list_Q2[[1]]
 df_Q2$country <- countrynames[1]
 
 #get all entries of list into one data.frame
-for (i in 1:length(df_Q2n)){
+for (i in 2:length(list_Q2)){
   df_new <- df_Q2n[[i]]
   
   if (ncol(df_new)<3)
     df_new$discards <- 0
   
   df_new$country <- countrynames[i]
+  #df_new <- df_new[, -1]
   
   df_Q2 <- bind_rows(df_Q2, df_new)
 }
 
+write.table(df_Q2, "df_Q2", sep="\t")
+
+df_Q2p <- df_Q2 %>% group_by(years) %>% 
+  summarise(landings =sum(landings), discards=sum(discards)) %>%
+  mutate(total =( landings+ discards)) %>% 
+  mutate(percilandi = (landings/total)) %>% 
+  mutate(percidiscardi = (discards/total)) %>%
+  select(-landings, -discards, -total) %>% gather(., key="catchtype", value="percentage", -years) 
+
+ggplot(df_Q2p, aes(x=years, y=percentage))+
+  geom_area(aes(fill=catchtype))+
+  scale_fill_brewer(palette = "Dark2")
 
 
 # ---- possible question 3 ----
@@ -129,15 +145,25 @@ ggplot(sec_ger2, aes(x=years, y=value))+
   scale_fill_brewer(palette = "Dark2")
 
 
-
 # ---- own thoughts ----
 
 library(plyr)
 
+# get catch data for Germany for fish species in Baltic and North sea 
 eezB_ger <- catchdata(region="eez", id=278, measure="value", dimension="taxon")
 eezB_ger <- bind_cols("id"=rownames(eezB_ger), eezB_ger)
 eezN_ger <- catchdata(region="eez", id=277, measure="value", dimension="taxon")
 eezN_ger <- bind_cols("id"=rownames(eezN_ger), eezN_ger)
 
-popo <- join(sec_ger, eezB_ger, by="id", match="first")
+join_ger <- join(sec_ger, eezB_ger, by="id", type="full", match="first")
 
+fish_ent <- listregions(region="fishing-entity")
+eez <- listregions(region="eez")
+lme <- listregions(region="lme")
+rfmo <- listregions(region="rfmo")
+fao <- listregions(region="fao")
+
+# get catchdata for fish species in NorthSea (id=22 in lme)
+lme_NS <- catchdata(region="lme", id=22)
+
+catchdata(region="eez", id=52, dimension="functionalgroup")
