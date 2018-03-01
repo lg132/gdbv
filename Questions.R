@@ -62,3 +62,44 @@ ggplot(fish.final, aes(x= years, y=tonnage)) +
   theme(legend.position = "right") + #add legend on the right 
   guides(fill=guide_legend(title="Countries")) + #change the legend title 
   scale_fill_hue (l=30) #just darken/lighten the colours 
+
+
+#=============================================================================
+# Question 2: Quantify by-catch ratios
+#=============================================================================
+# Plot again, this time grouped by “catch_type” and with a percentage scale
+# on the y-axis (instead of tonnes): landings vs. discards. Years on the xaxis.
+
+regiondf <- listregions("fishing-entity")
+countrynames <- regiondf$title[-c(61,192,93)]
+countryids <- regiondf$id[-c(61,192,93)]
+
+#------  getting the data:
+df_Q2n <- lapply(X = countryids, FUN = catchdata, region="fishing-entity", measure="tonnage", dimension="catchtype")
+
+#------- initial data.frame
+df_Q2 <- df_Q2n[[1]]
+df_Q2$country <- countrynames[1]
+
+#-------- get all entries of list into one data.frame
+for (i in 1:length(df_Q2n)){
+  df_new <- df_Q2n[[i]]
+  
+  if (ncol(df_new)<3)
+    df_new$discards <- 0
+  
+  df_new$country <- countrynames[i]
+  
+  df_Q2 <- bind_rows(df_Q2, df_new)
+}
+
+#read in:
+#df_Q2 <- read.delim("~/Dropbox/GeoVis/df_Q2") 
+
+# ----- calculate percentage of landings and discards
+df.ex2 <- df_Q2 %>% group_by(years) %>% summarise(landings =sum(landings), discards=sum(discards))
+df.ex2 <- df.ex2 %>% mutate(total =( landings+ discards)) %>% 
+  mutate(percilandi = (landings/total)) %>% 
+  mutate(percidiscardi = (discards/total))
+
+
