@@ -86,7 +86,7 @@ ggplot(fish.final, aes(x= years, y=tonnage)) +
   theme_light()
   #scale_fill_hue(l=20)
 
-
+colnames(fish.final)[2]
 # ---- possible question 2 ----
 
 #list_Q2 <- lapply(X = countryids, FUN = catchdata, region="fishing-entity", measure="tonnage", dimension="catchtype")
