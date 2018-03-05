@@ -1,7 +1,7 @@
 library(seaaroundus)
 library(ggplot2)
 library(tidyverse)
-library(viridis)
+library(plyr)
 
 wkt <- "POLYGON((2.37 43.56,13.18 43.56,13.18 35.66,2.37 35.66,2.37 43.56))"
 getcells(wkt)
@@ -82,7 +82,8 @@ ggplot(fish.final, aes(x=years, y=tonnage))+
 ggplot(fish.final, aes(x= years, y=tonnage)) +
   geom_area(aes(fill=factor(country, levels=c("Others", df5$country))))+
   theme(legend.position = "right")+
-  guides(fill=guide_legend(title="Countries"))
+  guides(fill=guide_legend(title="Countries"))+
+  theme_light()
   #scale_fill_hue(l=20)
 
 
@@ -140,32 +141,68 @@ ggplot(sec_ger2, aes(x=years, y=value))+
 
 # ---- own thoughts ----
 
-library(plyr)
-
-# get catch data for Germany for fish species in Baltic and North sea 
-eezB_ger <- catchdata(region="eez", id=278, measure="value", dimension="taxon")
-eezB_ger <- bind_cols("id"=rownames(eezB_ger), eezB_ger)
-eezN_ger <- catchdata(region="eez", id=277, measure="value", dimension="taxon")
-eezN_ger <- bind_cols("id"=rownames(eezN_ger), eezN_ger)
-
-join_ger <- join(sec_ger, eezB_ger, by="id", type="full", match="first")
-
+# listregions
 lme <- listregions(region="lme")
 rfmo <- listregions(region="rfmo")
 fao <- listregions(region="fao")
 hs <- listregions("highseas")
 
-# get catchdata for fish species in NorthSea (id=22 in lme)
-lme_NS <- catchdata(region="lme", id=22, dimension="reporting-status")
+# 1. Germany stuff ----
+# get catch data for Germany for fish species in Baltic and North sea 
+eezB_tax_ger <- catchdata(region="eez", id=278, measure="value", dimension="taxon")
+eezB_tax_ger <- bind_cols("id"=rownames(eezB_ger), eezB_ger)
+eezN_tax_ger <- catchdata(region="eez", id=277, measure="value", dimension="taxon")
+eezN_tax_ger <- bind_cols("id"=rownames(eezN_ger), eezN_ger)
 
-# get ...
+join_ger <- join(sec_ger, eezB_ger, by="id", type="full", match="first")
+
+# get sectorwise catchdata for germany globally
 glob_sec_ger <-catchdata(region="global", id=66, dimension="sector")
 
 # get catchtypes for germany
 glob_ct_ger <- catchdata(region="global", id=66, dimension="catchtype")
 colnames(glob_ct_ger) <- c("years", "landings_global", "discards_global")
+#glob_ct_ger <- glob_ct_ger %>% gather(., key="catchtype", value="tonnage", -years)
 eezB_ct_ger <- catchdata(region="eez", id=278, dimension="catchtype")
 colnames(eezB_ct_ger) <- c("years", "landings_BalticSea", "discards_BalticSea")
+#eezB_ct_ger <- eezB_ct_ger %>% gather(., key="catchtype", value="tonnage", -years)
+eezN_ct_ger <- catchdata(region="eez", id=277, dimension="catchtype")
+colnames(eezN_ct_ger) <- c("years", "landings_NorthSea", "discards_NorthSea")
+#eezN_ct_ger <- eezN_ct_ger %>% gather(., key="catchtype", value="tonnage", -years)
 
 join_ct_ger <- join(glob_ct_ger, eezB_ct_ger, by="years", type="full", match="first")
+join_ct_ger <- join(join_ct_ger, eezN_ct_ger, by="years", type="full", match="first")
+join_ct_ger <- join_ct_ger %>% gather(., key="catchtype", value="tonnage", -years)
 
+ggplot(join_ct_ger)+
+  geom_area(aes(x=years, y=tonnage, fill=catchtype))
+#  geom_col(eezB_ct_ger, aes(x=years, y=tonnage, fill=catchtype))
+
+catchdata("global", 66, dimension="sector", chart=T)
+
+# 2. North Sea stuff ----
+
+# get catchdata for NorthSea (id=22 in lme)
+lme_NS_repstat <- catchdata(region="lme", id=22, dimension="reporting-status")
+lme_NS_tax <- catchdata(region="lme", id=22, dimension="taxon")
+lme_NS_count <- catchdata(region="lme", id=22, dimension="country")
+lme_NS_sec <- catchdata(region="lme", id=22, dimension="sector")
+
+lme_NS_tax_p <- lme_NS_tax %>% gather(., key="taxon", value="tonnage", -years)
+
+ggplot()+
+  geom_area(data=lme_NS_tax_p, aes(x=years, y=tonnage, fill=taxon))+
+  geom_line(data=lme_NS_repstat, aes(x=years, y=unreported))
+
+lme_NS_count_p <- lme_NS_count %>% gather(., key="country", value = "tonnage", -years)
+
+ggplot()+
+  geom_area(data=lme_NS_count_p, aes(x=years, y=tonnage, fill=country))
+
+#plot(lme_NS_tax$years, lme_NS_tax$`atlantic herring`)
+#lines(lme_NS_tax$years, lme_NS_repstat$reported)
+
+# import shapefile for north sea
+library(sf)
+shape_NS <- st_read("../gdbv/Maritime_Boundaries/MBEULSIV1.shp")
+plot(shape_NS)
