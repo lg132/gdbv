@@ -4,6 +4,7 @@
 
 library(ggplot2)
 library(tidyr)
+library(plyr)
 library(dplyr)
 library(seaaroundus)
 
@@ -33,7 +34,7 @@ for (i in 2:length(countryids)){ #beginning with 2.column (first one is year)
 #command to save data frame and read in:
 #dump("df_fishing_all","df_fishing_all.Rdmpd")
 #df_fishing_all <- source("df_fishing_all.Rdmpd")
-#df_fishing_all <- df_fishing_all[[1]]
+df_fishing_all <- df_fishing_all[[1]]
 
 #-------------------------------------------------------------------
 # PREPARING DATA FOR STACKED CHART
@@ -95,7 +96,7 @@ for (i in 1:length(df_Q2n)){
 
 #write and read in again:
 #write.table(df_Q2, "df_Q2", sep="\t")
-#df_Q2 <- read.delim("~/Dropbox/GeoVis/df_Q2") 
+df_Q2 <- read.delim("~/Dropbox/GeoVis/df_Q2") 
 
 # ------ calculate percentage of landings and discards
 
