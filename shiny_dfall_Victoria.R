@@ -16,9 +16,11 @@ ui <- fluidPage(
     sidebarPanel(
       
       # Input: Specification of range within an interval ----
-      sliderInput("range", "Year:",
+      sliderInput(inputId = "range", 
+                  label="Year:",
                   min = 1950, max = 2014,
                   value = c(1950,2014),
+                  sep = "",
                   step=1)
       
     ),
@@ -50,17 +52,40 @@ server <- function(input, output) {
     
   })
   
+  
   # Show the values in an HTML table ----
   output$values <- renderTable({
     sliderValues()
   }) 
     
   output$graph <- renderPlot({
-    x <- df_fishing_all$years
-    y <- df_fishing_all$albania
-    plot(x,y,type="l", xlab="Year",ylab="tonnage",main="Albania")
     
+    range <- input$range
+    df1 <- df_fishing_all
+    df2 <- df1 %>% gather(., key="country", value="tonnage", -c(years)) 
+    df2.1 <- df2 %>% filter(years>=input$range[1], years<=input$range[2])
+    
+    df3 <- df2.1 %>% group_by(country) %>% summarise(avg=mean(tonnage))
+    
+    df4 <- df3 %>% filter(avg<2000000) 
+    df5 <- df3 %>% filter(avg>2000000) 
+    
+    fishing_high <- df2.1 %>% filter(country %in% df5$country) #all countries with more than 2mio catches
+    others1 <- df2.1 %>% filter(country %in% df4$country)
+    others2 <- others1 %>% group_by(years) %>% summarise(tonnage = sum(tonnage))
+    others3 <- others2 %>% mutate(country = "Others") %>% select(years,country,tonnage)
+    
+    fish.final <- bind_rows(fishing_high,others3)
+    
+    ggplot(fish.final, aes(x= years, y=tonnage)) +
+      geom_area(aes(fill=factor(country, levels=c(df5$country, "Others"))))+  
+      #levels: to have "others" last (default of ggplot would be alphabetical order)
+      theme(legend.position = "right") + #add legend on the right 
+      guides(fill=guide_legend(title="Countries")) + #change the legend title 
+      scale_fill_hue (l=30) #just darken/lighten the colours 
+  
   })
+    
   
 }
 
