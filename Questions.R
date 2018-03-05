@@ -166,11 +166,12 @@ ggplot(medhigh2, aes(x=years, y=tonnage))+
   theme(legend.position = "right")+
   scale_fill_hue(l=40)+
   guides(fill=guide_legend(title="Countries"))+
-  labs(title="FAO")
+  labs(title="FAO areas")
 
 
 ggplot(medblack2, aes(x=years, y=tonnage))+
   geom_area(aes(fill=factor(country)))+
   theme(legend.position = "right")+
   scale_fill_hue (l=40)+
-  guides(fill=guide_legend(title="Countries"))
+  guides(fill=guide_legend(title="Countries"))+
+  labs(title="LME - Large Marine Ecosystems")

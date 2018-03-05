@@ -111,7 +111,6 @@ View(listregions("lme"))
 ### Welche Länder fischen im Mittelmeer?
 #==========================================
 
-
 med <- catchdata(region="lme", 26, dimension="country", measure="tonnage")
 black <- catchdata(region="lme", 62, dimension="country", measure="tonnage")
 
@@ -142,3 +141,63 @@ ggplot(medblack2, aes(x=years, y=tonnage))+
   theme(legend.position = "right")+
   scale_fill_hue (l=40)+
   guides(fill=guide_legend(title="Countries"))
+
+
+
+#==========================================
+### Sushi
+#==========================================
+View(listregions("fishing-entity"))
+jap <- catchdata(region="fishing-entity", 91, dimension="country", measure="tonnage")
+View(jap)
+
+
+#==========================================
+### Nord/Ostseeküste
+#==========================================
+# Wer fischt wieviel?
+med <- catchdata(region="lme", 26, dimension="country", measure="tonnage")
+
+nord <- catchdata(region="lme", 22, dimension = "country", measure="tonnage")
+ost <- catchdata(region="lme", 23, dimension = "country", measure="tonnage")
+nord2 <- nord %>% gather(., key="country", value="tonnage", -c(years))
+ost2 <- ost %>% gather(., key="country", value="tonnage", -c(years))
+
+ggplot(nord2, aes(x=years, y=tonnage))+
+  geom_area(aes(fill=factor(country)))+
+  theme(legend.position = "right")+
+  scale_fill_hue(l=40)+
+  guides(fill=guide_legend(title="Countries"))+
+  labs(title="nordsee")
+
+ggplot(ost2, aes(x=years, y=tonnage))+
+  geom_area(aes(fill=factor(country)))+
+  theme(legend.position = "right")+
+  scale_fill_hue(l=40)+
+  guides(fill=guide_legend(title="Countries"))+
+  labs(title="ostsee")
+#Was wird gefischt?
+
+View(listregions("lme"))
+polareezost <- catchdata(region="eez", 278, dimension = "country", measure="tonnage")
+
+eezost2 <- eezost %>% gather(., key="country", value="tonnage", -c(years))
+
+ggplot(eezost2, aes(x=years, y=tonnage))+
+  geom_area(aes(fill=factor(country)))+
+  theme(legend.position = "right")+
+  scale_fill_hue(l=40)+
+  guides(fill=guide_legend(title="Countries"))+
+  labs(title="eez ostsee")
+
+eeznord <- catchdata(region="eez", 277, dimension = "taxon", measure="tonnage")
+
+eeznord2 <- eeznord %>% gather(., key="taxon", value="tonnage", -c(years))
+
+ggplot(eeznord2, aes(x=years, y=tonnage))+
+  geom_area(aes(fill=factor(taxon)))+
+  theme(legend.position = "right")+
+  scale_fill_hue(l=40)+
+  guides(fill=guide_legend(title="Countries"))+
+  labs(title="eez nordsee")
+?catchdata
