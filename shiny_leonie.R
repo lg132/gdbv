@@ -31,9 +31,6 @@ ui <- fluidPage(
     # Main panel for displaying outputs ----
     mainPanel(
       
-      # Output: Table with coloumn-range ----
-      #verbatimTextOutput("Range"),
-      
       # Output: Plot ----
       plotOutput(outputId = "areaPlot")
     )
@@ -55,7 +52,7 @@ server <- function(input, output) {
   
   dataInput <- reactive({
     data <- switch(input$df,
-                   "fish.final" = df_Q2p,
+                   "fish.final" = fish.final,
                    "df_Q2p" = df_Q2p)
     range <- input$range
  
@@ -69,12 +66,18 @@ server <- function(input, output) {
     as.numeric(range)
     data <- data %>% filter(years>=range[1], years<=range[2])
     
-    ifelse(colnames(data)[2]=="catchtype",
-           ggplot(data=data, aes(x=years, y=percentage))+
-             geom_area(aes(fill=catchtype))+
-             scale_fill_brewer(palette = "Dark2"),
-           )
-    
+    if (colnames(data)[2]=="country"){
+      ggplot(data=data, aes(x= years, y=tonnage))+
+        geom_area(aes(fill=factor(country, levels=c("Others", df5$country))))+
+        theme(legend.position = "right")+
+        guides(fill=guide_legend(title="Countries"))
+      }
+      
+#    if (colnames(data)[2]=="catchtype"){
+#      ggplot(data=data, aes(x=years, y=percentage))+
+#        geom_area(aes(fill=catchtype))+
+#        scale_fill_brewer(palette = "Dark2")
+#    }
     
   })
 }
