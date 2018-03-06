@@ -78,7 +78,7 @@ server <- function(input, output) {
         group_by(country) %>% summarise(avg=mean(tonnage))
     }
     else {
-      data_table <- data %>%
+      data_table <- data_plot %>%
         mutate(perc_disc = discards/(landings+discards)) %>% 
         group_by(country) %>% summarise(avg=mean(perc_disc))
     }

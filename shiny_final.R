@@ -78,7 +78,7 @@ server <- function(input, output) {
         group_by(country) %>% summarise(avg=mean(tonnage))
     }
     else {
-      data_table <- data %>%
+      data_table <- data_plot %>%
         mutate(perc_disc = discards/(landings+discards)) %>% 
         group_by(country) %>% summarise(avg=mean(perc_disc))
     }
@@ -93,9 +93,10 @@ server <- function(input, output) {
     
     if (input$dim == "country"){
       data <- data %>% gather(., key="country", value="tonnage", -c(years)) #%>% 
-      #  filter(years>=input$range[1], years<=input$range[2])
+
       data1 <- data %>% group_by(country) %>% summarise(avg=mean(tonnage)) %>% filter(avg>2000000)
       data2 <- data %>% group_by(country) %>% summarise(avg=mean(tonnage)) %>% filter(avg<2000000)
+      
       data_high <- data %>% filter(country %in% data1$country)
       data_low <- data %>% filter(country %in% data2$country) %>% group_by(years) %>%
         summarise(tonnage = sum(tonnage)) %>% mutate(country = "Others") %>% select(years,country,tonnage)
