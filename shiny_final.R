@@ -143,6 +143,7 @@ server <- function(input, output) {
       
       ggplot(data=data_high, aes(x=years, y=perc_disc, colour=country))+
         geom_line(size=1.3)+
+        labs(title = "Discards > 30%",  y="percentage")+
         theme(legend.position = "bottom")
       
       # ggplot(data=data_high, aes(x=years, y=perc_disc))+
