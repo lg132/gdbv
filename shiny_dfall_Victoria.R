@@ -56,28 +56,27 @@ server <- function(input, output) {
   # Reactive expression for Question1: ----------------------------
   # Create data frame (df3) for the ggplot and the ordered list----
   
-  df2function <- reactive({
+  df_function <- reactive({
     
-    df_fishing_all %>% 
+    df2 <- df_fishing_all %>% 
       gather(., key="country", value="tonnage", -c(years)) %>% 
       filter(years>=input$range[1], years<=input$range[2])
-      #group_by(country) %>% summarise(avg=mean(tonnage))
+    df3 <- df2 %>% group_by(country) %>% summarise(avg=mean(tonnage))
+      
+    return(list("df2"=df2,"df3"=df3))
   })
   
-  df3function <- reactive({
-    df2function() %>% group_by(country) %>% summarise(avg=mean(tonnage))
-  })
 
   #OUTPUT1: stacked ggplot---------------------------------------------
   output$graph <- renderPlot({
     
     #preparing data frames: ----------
-    df3 <- df3function()
+    df3 <- df_function()$df3
     df4 <- df3 %>% filter(avg<2000000) 
     df5 <- df3 %>% filter(avg>2000000) 
     
-    fishing_high <- df2function() %>% filter(country %in% df5$country) #all countries with more than 2mio catches
-    others1 <- df2function() %>% filter(country %in% df4$country)
+    fishing_high <- df_function()$df2 %>% filter(country %in% df5$country) #all countries with more than 2mio catches
+    others1 <- df_function()$df2 %>% filter(country %in% df4$country)
     others2 <- others1 %>% group_by(years) %>% summarise(tonnage = sum(tonnage))
     others3 <- others2 %>% mutate(country = "Others") %>% select(years,country,tonnage)
     
@@ -97,7 +96,7 @@ server <- function(input, output) {
   # OUTPUT2: Show the values in an HTML table: ------------
   # ordered list of the 10 countries with most catches ----
   output$values <- renderTable({
-    arrange(df3function(),desc(avg))[c(1:10),]
+    arrange(df_function()$df3,desc(avg))[c(1:10),]
   }) 
   
 }
