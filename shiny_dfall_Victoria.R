@@ -1,18 +1,19 @@
 library(shiny)
 
+#read in data: ===============================================
 df_fishing_all <- source("df_fishing_all.Rdmpd")
 df_fishing_all <- df_fishing_all[[1]]
 
-# Define UI for slider demo app ----
+# Define UI for slider demo app ===============================
 ui <- fluidPage(
   
   # App title ----
   titlePanel("Sliders"),
   
-  # Sidebar layout with input and output definitions ----
+  # Sidebar layout with input and output definitions -------
   sidebarLayout(
     
-    # Sidebar to demonstrate various slider options ----
+    # Sidebar to demonstrate various slider options --------
     sidebarPanel(
       
       # Input: Specification of range within an interval ----
@@ -25,10 +26,10 @@ ui <- fluidPage(
       
     ),
     
-    # Main panel for displaying outputs ----
+    # Main panel for displaying outputs ==========================
     mainPanel(
       
-      # Output: Table summarizing the values entered ----
+      # Output: The two tab panels:-----------------
       tabsetPanel(type="tabs",
                   tabPanel("values", tableOutput("values")),
                   tabPanel("Graph", plotOutput(outputId = "graph"))
@@ -38,7 +39,7 @@ ui <- fluidPage(
   )
 )
 
-# Define server logic for slider examples ----
+# Define server logic for slider examples ==========================
 server <- function(input, output) {
   
   # Reactive expression to create data frame of all input values ----
@@ -52,21 +53,22 @@ server <- function(input, output) {
     
   })
   
-  
-  # Show the values in an HTML table ----
-  output$values <- renderTable({
-    sliderValues()
-  }) 
+  # Reactive expression for Question1: ----------------------------
+  # Create data frame (df3) for the ggplot and the ordered list----
+  df3function <- reactive({
     
+    df_fishing_all %>% 
+      gather(., key="country", value="tonnage", -c(years)) %>% 
+      filter(years>=input$range[1], years<=input$range[2]) %>%
+      group_by(country) %>% summarise(avg=mean(tonnage))
+  })
+  
+
+  #OUTPUT1: stacked ggplot---------------------------------------------
   output$graph <- renderPlot({
     
-    range <- input$range
-    df1 <- df_fishing_all
-    df2 <- df1 %>% gather(., key="country", value="tonnage", -c(years)) 
-    df2.1 <- df2 %>% filter(years>=input$range[1], years<=input$range[2])
-    
-    df3 <- df2.1 %>% group_by(country) %>% summarise(avg=mean(tonnage))
-    
+    #preparing data frames: ----------
+    df3 <- df3function()
     df4 <- df3 %>% filter(avg<2000000) 
     df5 <- df3 %>% filter(avg>2000000) 
     
@@ -77,6 +79,7 @@ server <- function(input, output) {
     
     fish.final <- bind_rows(fishing_high,others3)
     
+    #plotting: ----------------------
     ggplot(fish.final, aes(x= years, y=tonnage)) +
       geom_area(aes(fill=factor(country, levels=c(df5$country, "Others"))))+  
       #levels: to have "others" last (default of ggplot would be alphabetical order)
@@ -84,10 +87,16 @@ server <- function(input, output) {
       guides(fill=guide_legend(title="Countries")) + #change the legend title 
       scale_fill_hue (l=30) #just darken/lighten the colours 
   
+   
   })
-    
+  
+  # OUTPUT2: Show the values in an HTML table: ------------
+  # ordered list of the 10 countries with most catches ----
+  output$values <- renderTable({
+    arrange(df3function(),desc(avg))[c(1:10),]
+  }) 
   
 }
 
-# Create Shiny app ----
+# Create Shiny app =======================================
 shinyApp(ui, server)
