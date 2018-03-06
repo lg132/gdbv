@@ -30,7 +30,21 @@ ui <- fluidPage(
       # Input: Select-option for data.frame
       selectInput(inputId = "dim",
                   label = "select dimension",
-                  choices = c("country", "catchtype"))
+                  choices = c("country", "catchtype")) ,
+      
+      radioButtons(inputId = "table_len",
+                   label = "Show in table:",
+                   inline = TRUE,
+                   choiceNames = c("5","10","15","20", "all"),
+                   choiceValues = c(5,10,15,20,197)) 
+      
+      #numericInput(inputId = "table_len",
+      #             label = "Show in table",
+      #             value = 10,
+      #             min = 0,
+      #             max = 197,
+      #             step = 1)
+
       
     ),
     
@@ -75,7 +89,7 @@ server <- function(input, output) {
     
     if(input$dim == "country"){
       data_table <- data_plot %>% gather(., key="country", value="tonnage", -c(years)) %>%
-        group_by(country) %>% summarise(avg=mean(tonnage))
+        group_by(country) %>% summarise(avg=sum(tonnage))
     }
     else {
       data_table <- data_plot %>%
@@ -130,8 +144,9 @@ server <- function(input, output) {
   })
   
   # OUTPUT 2: Table
+
   output$values <- renderTable({
-    arrange(dataInput()$data_table, desc(avg))[c(1:10),]
+    arrange(dataInput()$data_table, desc(avg))[c(1:input$table_len),]
   }) 
 }
 

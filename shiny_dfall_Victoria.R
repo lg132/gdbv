@@ -30,7 +30,14 @@ ui <- fluidPage(
       # Input: Select-option for data.frame
       selectInput(inputId = "dim",
                   label = "select dimension",
-                  choices = c("country", "catchtype"))
+                  choices = c("country", "catchtype")),
+      
+      radioButtons(inputId = "table_len",
+                   label = "Show in table:",
+                   inline = TRUE,
+                   choiceNames = c("5","10","15","20", "all"),
+                   choiceValues = c(5,10,15,20,197)) 
+      
       
     ),
     
