@@ -75,7 +75,7 @@ server <- function(input, output) {
     
     if(input$dim == "country"){
       data_table <- data_plot %>% gather(., key="country", value="tonnage", -c(years)) %>%
-        group_by(country) %>% summarise(avg=mean(tonnage))
+        group_by(country) %>% summarise(avg=sum(tonnage))
     }
     else {
       data_table <- data %>%
@@ -85,6 +85,22 @@ server <- function(input, output) {
     
     return(list("data_plot"=data_plot, "data_table" = data_table))
   })
+  
+  calcTable <- reactive({
+    data_table <- dataInput()$data_table
+    if(input$dim=="country"){
+      data_table <- arrange(data_table, desc(avg))[c(1:10),]
+      colnames(data_table) <- c("country", "sum of catches in tons")
+    }
+    else{
+      data_table <- arrange(data_table, desc(avg))[c(1:10),]
+      colnames(data_table) <- c("country", "average discards in %")
+    }
+    
+    return(data_table)
+  
+  })
+  
   
   # OUTPUT 1: Plots
   output$areaPlot <- renderPlot({
@@ -130,7 +146,7 @@ server <- function(input, output) {
   
   # OUTPUT 2: Table
   output$values <- renderTable({
-    arrange(dataInput()$data_table, desc(avg))[c(1:10),]
+    calcTable()
   }) 
 }
 
