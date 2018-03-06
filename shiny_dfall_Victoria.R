@@ -1,45 +1,53 @@
 library(shiny)
+library(ggplot2)
+library(tidyverse)
 
 #read in data: ===============================================
 df_fishing_all <- source("df_fishing_all.Rdmpd")
 df_fishing_all <- df_fishing_all[[1]]
+df_Q2 <- read.delim("df_Q2")
 
 # Define UI for slider demo app ===============================
 ui <- fluidPage(
   
   # App title ----
-  titlePanel("Sliders"),
+  titlePanel("seaaroundus"),
   
-  # Sidebar layout with input and output definitions -------
+  # Sidebar layout with input and output definitions ----
   sidebarLayout(
     
-    # Sidebar to demonstrate various slider options --------
+    # Sidebar panel for inputs ----
     sidebarPanel(
       
-      # Input: Specification of range within an interval ----
-      sliderInput(inputId = "range", 
-                  label="Year:",
-                  min = 1950, max = 2014,
-                  value = c(1950,2014),
+      # Input: Slider for range of years to be displayed ----
+      sliderInput(inputId = "range",
+                  label = "Years:",
+                  min = 1950,
+                  max = 2014,
                   sep = "",
-                  step=1)
+                  value = c(1950, 2014)),
+      
+      # Input: Select-option for data.frame
+      selectInput(inputId = "dim",
+                  label = "select dimension",
+                  choices = c("country", "catchtype"))
       
     ),
     
-    # Main panel for displaying outputs ==========================
+    # Main panel for displaying outputs ----
     mainPanel(
       
       # Output: The two tab panels:-----------------
       tabsetPanel(type="tabs",
-                  tabPanel("Graph", plotOutput(outputId = "graph")),
-                  tabPanel("values", tableOutput("values"))        
-                  
-      
-    ))
+                  tabPanel("Graph", plotOutput(outputId = "areaPlot")),
+                  tabPanel("values", tableOutput("values"))
+      )
+    )
   )
 )
 
-# Define server logic for slider examples ==========================
+
+# Define server logic required to draw a plot ----
 server <- function(input, output) {
   
   # Reactive expression to create data frame of all input values ----
@@ -48,58 +56,84 @@ server <- function(input, output) {
     data.frame(
       Name = c("Range"),
       Value = as.character(c(paste(input$range, collapse = " ")
-                             )),
+      )),
       stringsAsFactors = FALSE)
     
   })
   
-  # Reactive expression for Question1: ----------------------------
-  # Create data frame (df3) for the ggplot and the ordered list----
+  # Reactive expression to create plots
   
-  df_function <- reactive({
+  dataInput <- reactive({
     
-    df2 <- df_fishing_all %>% 
-      gather(., key="country", value="tonnage", -c(years)) %>% 
-      filter(years>=input$range[1], years<=input$range[2])
-    df3 <- df2 %>% group_by(country) %>% summarise(avg=mean(tonnage))
+    data <- switch(input$dim,
+                   "country" = df_fishing_all,
+                   "catchtype" = df_Q2)
+    range <- input$range
+    
+    
+    data_plot <- data %>% filter(years>=range[1], years<=range[2])
+    
+    if(input$dim == "country"){
+      data_table <- data_plot %>% gather(., key="country", value="tonnage", -c(years)) %>%
+        group_by(country) %>% summarise(avg=mean(tonnage))
+    }
+    else {
+      data_table <- data %>%
+        mutate(perc_disc = discards/(landings+discards)) %>% 
+        group_by(country) %>% summarise(avg=mean(perc_disc))
+    }
+    
+    return(list("data_plot"=data_plot, "data_table" = data_table))
+  })
+  
+  # OUTPUT 1: Plots
+  output$areaPlot <- renderPlot({
+    
+    data <- dataInput()$data_plot
+    
+    if (input$dim == "country"){
+      data <- data %>% gather(., key="country", value="tonnage", -c(years)) #%>% 
+      #  filter(years>=input$range[1], years<=input$range[2])
+      data1 <- data %>% group_by(country) %>% summarise(avg=mean(tonnage)) %>% filter(avg>2000000)
+      data2 <- data %>% group_by(country) %>% summarise(avg=mean(tonnage)) %>% filter(avg<2000000)
+      data_high <- data %>% filter(country %in% data1$country)
+      data_low <- data %>% filter(country %in% data2$country) %>% group_by(years) %>%
+        summarise(tonnage = sum(tonnage)) %>% mutate(country = "Others") %>% select(years,country,tonnage)
       
-    return(list("df2"=df2,"df3"=df3))
-  })
-  
+      data <- bind_rows(data_high, data_low)
+      
+      ggplot(data=data, aes(x= years, y=tonnage))+
+        geom_area(aes(fill=factor(country, levels=c("Others", data1$country))))+
+        theme(legend.position = "right")+
+        guides(fill=guide_legend(title="countries"))+
+        labs(title = "Catch by countries (> 2,000,000 tons)")
+    }
+    else {
+      data <- data %>%
+        mutate(perc_land = landings/(landings+discards)) %>%
+        mutate(perc_disc = discards/(landings+discards))
+      data1 <- data %>%
+        group_by(country) %>%
+        summarise(avg=mean(perc_disc)) %>%
+        filter(avg>0.3)
 
-  #OUTPUT1: stacked ggplot---------------------------------------------
-  output$graph <- renderPlot({
+      data_high <- data %>% filter(country %in% data1$country)
+      
+      ggplot(data=data_high, aes(x=years, y=perc_disc))+
+        geom_area(aes(fill=country))+
+        labs(title = "Discards > 30%",  y="percentage")+
+        theme(legend.position = "right")
+    }
     
-    #preparing data frames: ----------
-    df3 <- df_function()$df3
-    df4 <- df3 %>% filter(avg<2000000) 
-    df5 <- df3 %>% filter(avg>2000000) 
     
-    fishing_high <- df_function()$df2 %>% filter(country %in% df5$country) #all countries with more than 2mio catches
-    others1 <- df_function()$df2 %>% filter(country %in% df4$country)
-    others2 <- others1 %>% group_by(years) %>% summarise(tonnage = sum(tonnage))
-    others3 <- others2 %>% mutate(country = "Others") %>% select(years,country,tonnage)
-    
-    fish.final <- bind_rows(fishing_high,others3)
-    
-    #plotting: ----------------------
-    ggplot(fish.final, aes(x= years, y=tonnage)) +
-      geom_area(aes(fill=factor(country, levels=c(df5$country, "Others"))))+  
-      #levels: to have "others" last (default of ggplot would be alphabetical order)
-      theme(legend.position = "right") + #add legend on the right 
-      guides(fill=guide_legend(title="Countries")) + #change the legend title 
-      scale_fill_hue (l=30) #just darken/lighten the colours 
-  
-   
   })
   
-  # OUTPUT2: Show the values in an HTML table: ------------
-  # ordered list of the 10 countries with most catches ----
+  # OUTPUT 2: Table
   output$values <- renderTable({
-    arrange(df_function()$df3,desc(avg))[c(1:10),]
+    arrange(dataInput()$data_table, desc(avg))[c(1:10),]
   }) 
-  
 }
 
-# Create Shiny app =======================================
-shinyApp(ui, server)
+
+# Create Shiny app ----
+shinyApp(ui = ui, server = server)
