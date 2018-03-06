@@ -1,5 +1,5 @@
 ---
-title: "Sea Around Us"
+title: "Sea Around Us Project"
 author: "Leonie Grau, Felix Rentschler, Victoria Kolodzjiej"
 date: "March 6, 2018"
 output: html_document
@@ -14,7 +14,7 @@ runtime: shiny
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-This R Markdown document is made interactive using Shiny. Unlike the more traditional workflow of creating static reports, you can now create documents that allow your readers to change the assumptions underlying your analysis and see the results immediately. 
+This R Markdown document is made interactive using Shiny. Unlike the more traditional workflow of creating static reports, you can now create documents that allow your readers to change the assumptions underlying your analysis and see the results immediately. <cite>Benjamin Franklin</cite>
 
 To learn more, see [Interactive Documents](http://rmarkdown.rstudio.com/authoring_shiny.html).
 
