@@ -86,7 +86,7 @@ server <- function(input, output) {
       data1 <- data %>% group_by(country) %>% summarise(avg=mean(tonnage)) %>% filter(avg>2000000)
       data2 <- data %>% group_by(country) %>% summarise(avg=mean(tonnage)) %>% filter(avg<2000000)
       data_high <- data %>% filter(country %in% data1$country)
-      data_low <- data %>% filter(country %in% df2$country) %>% group_by(years) %>%
+      data_low <- data %>% filter(country %in% data2$country) %>% group_by(years) %>%
         summarise(tonnage = sum(tonnage)) %>% mutate(country = "Others") %>% select(years,country,tonnage)
       
       data <- bind_rows(data_high, data_low)
