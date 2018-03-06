@@ -30,7 +30,7 @@ ui <- fluidPage(
       # Input: Select-option for data.frame
       selectInput(inputId = "dim",
                   label = "select dimension",
-                  choices = c("country", "catchtype")),
+                  choices = c("total catches", "discards")),
       
       radioButtons(inputId = "table_len",
                    label = "Show in table:",
@@ -72,14 +72,14 @@ server <- function(input, output) {
   dataInput <- reactive({
     
     data <- switch(input$dim,
-                   "country" = df_fishing_all,
-                   "catchtype" = df_Q2)
+                   "total catches" = df_fishing_all,
+                   "discards" = df_Q2)
     range <- input$range
     
     
     data_plot <- data %>% filter(years>=range[1], years<=range[2])
     
-    if(input$dim == "country"){
+    if(input$dim == "total catches"){
       data_table <- data_plot %>% gather(., key="country", value="tonnage", -c(years)) %>%
         group_by(country) %>% summarise(avg=sum(tonnage))
     }
@@ -94,7 +94,7 @@ server <- function(input, output) {
   
   calcTable <- reactive({
     data_table <- dataInput()$data_table
-    if(input$dim=="country"){
+    if(input$dim=="total catches"){
       data_table <- arrange(data_table, desc(avg))[c(1:input$table_len),]
       colnames(data_table) <- c("country", "sum of catches in tons")
     }
@@ -113,7 +113,7 @@ server <- function(input, output) {
     
     data <- dataInput()$data_plot
     
-    if (input$dim == "country"){
+    if (input$dim == "total catches"){
       data <- data %>% gather(., key="country", value="tonnage", -c(years)) #%>% 
       #  filter(years>=input$range[1], years<=input$range[2])
       data1 <- data %>% group_by(country) %>% summarise(avg=mean(tonnage)) %>% filter(avg>2000000)
