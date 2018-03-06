@@ -19,6 +19,7 @@ ui <- fluidPage(
                   label = "Range:",
                   min = 1950,
                   max = 2014,
+                  sep = "",
                   value = c(1950, 2014)),
       
       # Input: Select-option for data.frame
@@ -38,17 +39,8 @@ ui <- fluidPage(
 )
 
 
-# Define server logic required to draw a histogram ----
+# Define server logic required to draw a plot ----
 server <- function(input, output) {
-  
-  # Histogram of the Old Faithful Geyser Data ----
-  # with requested number of bins
-  # This expression that generates a histogram is wrapped in a call
-  # to renderPlot to indicate that:
-  #
-  # 1. It is "reactive" and therefore should be automatically
-  #    re-executed when inputs (input$bins) change
-  # 2. Its output type is a plot
   
   dataInput <- reactive({
     data <- switch(input$df,
