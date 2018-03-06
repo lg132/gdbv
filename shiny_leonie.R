@@ -2,6 +2,11 @@ library(shiny)
 library(ggplot2)
 library(tidyverse)
 
+#read in data: ===============================================
+df_fishing_all <- source("df_fishing_all.Rdmpd")
+df_fishing_all <- df_fishing_all[[1]]
+df_Q2 <- read.delim("df_Q2")
+
 # Define UI for app that draws a histogram ----
 ui <- fluidPage(
   
