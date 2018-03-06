@@ -31,8 +31,8 @@ ui <- fluidPage(
       
       # Output: The two tab panels:-----------------
       tabsetPanel(type="tabs",
-                  tabPanel("values", tableOutput("values")),
-                  tabPanel("Graph", plotOutput(outputId = "graph"))
+                  tabPanel("Graph", plotOutput(outputId = "graph")),
+                  tabPanel("values", tableOutput("values"))        
                   
       
     ))
