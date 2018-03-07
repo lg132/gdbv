@@ -35,7 +35,8 @@ ui <- fluidPage(
       # Input: Select-option for number of countries to be displayed in plots
       selectInput(inputId = "number",
                   label = "Select number of countries in Graph",
-                  choices = c(1:12)),
+                  choices = c(1:12),
+                  selected = 6),
       
       # Input: Select-option for number of entries to be displayed in tables
       radioButtons(inputId = "table_len",
@@ -109,7 +110,7 @@ server <- function(input, output) {
     }
     else{
       data_table <- arrange(data_table, desc(avg))[c(1:input$table_len),]
-      colnames(data_table) <- c("country", "discards in %")
+      colnames(data_table) <- c("country", "average discards in %")
     }
     
     return(data_table)
@@ -123,21 +124,24 @@ server <- function(input, output) {
     number <- as.integer(dataInput()$number)
     
     if (input$dim == "total catch"){
-      data <- data %>% gather(., key="country", value="tonnage", -c(years))
-      data1 <- data %>% group_by(country) %>% summarise(avg=mean(tonnage)) %>% filter(avg>2000000) %>%
-        arrange(., desc(avg)) %>% top_n(., n=number)
-      data2 <- data %>% group_by(country) %>% summarise(avg=mean(tonnage)) %>% filter(avg<2000000)
-      data_high <- data %>% filter(country %in% data1$country)
-      data_low <- data %>% filter(country %in% data2$country) %>% group_by(years) %>%
-        summarise(tonnage = sum(tonnage)) %>% mutate(country = "Others") %>% select(years,country,tonnage)
+      
+      data <- data %>% gather(., key="country", value="tonnage", -c(years)) 
+      
+      data_arranged <- data %>% group_by(country) %>% summarise(avg=mean(tonnage)) %>% arrange(., desc(avg))
+      
+      data_high <- data %>% filter(country %in% data_arranged[c(1:number),]$country)
+      data_low <- data %>% filter(country %in% data_arranged[c((number +1):nrow(data)),]$country)  %>% group_by(years) %>%
+        summarise(tonnage = sum(tonnage)) %>% mutate(country = "Others") %>%
+        select(years,country,tonnage)
+      
       
       data <- bind_rows(data_high, data_low)
       
       ggplot(data=data, aes(x= years, y=tonnage))+
-        geom_area(aes(fill=factor(country, levels=c("Others", data1$country))))+
+        geom_area(aes(fill=factor(country, levels=c(data_arranged[c(1:number),]$country, "Others"))))+
         theme(legend.position = "right")+
         guides(fill=guide_legend(title="countries"))+
-        labs(title = "Total catch by countries (> 2,000,000 tons) and others (< 2,000,000 tons)")
+        labs(title = "Total catch")
     }
     else {
       data <- data %>%
