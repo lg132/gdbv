@@ -1,6 +1,6 @@
 ---
 title: "Sea Around Us Project"
-author: "Leonie Grau, Felix Rentschler, Victoria Kolodzjiej"
+author: "Leonie Grau, Felix Rentschler, Victoria Kolodziej"
 date: "March 6, 2018"
 output: html_document
 runtime: shiny
