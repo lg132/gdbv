@@ -1,56 +1,41 @@
 ---
-title: "seaaroundus"
+title: "Sea Around Us Project"
 author: "Leonie Grau, Felix Rentschler, Victoria Kolodzjiej"
-date: "6 März 2018"
+date: "March 6, 2018"
 output: html_document
 runtime: shiny
 ---
 
 # Introduction
 
-
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+The Sea Around Us initiative is a research project by the University of British Columbia, that offers reconstructed catch data for worldwide fisheries and fishery resources. Since overfishing is the major driver on the declining viability of fish stocks, a monitoring program with valid data is crucial for evaluating the marine development. The database provides information for policy makers, fishery managers and the scientific community to get a better understanding of global fishery catches and more detailed information about which countries are involved.  The impact of fishery on the marine ecosystems therefore is presented on a spatial scale in such a way that it has an ecological and political relevance. <cite>(Pauly D. and Zeller D. , 2015. Sea Around Us Concepts, Design and Data<cite> [www.seaaroundus.org](www.seaaroundus.org))
 
-This R Markdown document is made interactive using Shiny. Unlike the more traditional workflow of creating static reports, you can now create documents that allow your readers to change the assumptions underlying your analysis and see the results immediately. 
+The database covers catch data over 64 years (1950-2014), 4 fishing sectors (industrial, artisanal, subsistence and recreational), 2 catch types (landed and discarded catch) and 2 types of reporting status (reported and unreported). There are 5 regions that can be shown: Exclusive-economic zones (EEZ), large marine ecosystems (LME), regional fisheries management organizations (RFMO),  EEZ-bordering and taxon. [...]
 
-To learn more, see [Interactive Documents](http://rmarkdown.rstudio.com/authoring_shiny.html).
+For the purpose of a more in depth data work the R library “seaaroundus” is provided. The aim of this project is to create an interactive web app to present specific data from the sea around us database. This is realised by the use of  the R package “shiny”. 
 
-## Inputs and Outputs
+
+## Material and Methods
 
 You can embed Shiny inputs and outputs in your document. Outputs are automatically updated whenever inputs change.  This demonstrates how a standard R plot can be made interactive by wrapping it in the Shiny `renderPlot` function. The `selectInput` and `sliderInput` functions create the input widgets used to drive the plot.
 
-```{r eruptions, echo=FALSE}
-inputPanel(
-  selectInput("n_breaks", label = "Number of bins:",
-              choices = c(10, 20, 35, 50), selected = 20),
-  
-  sliderInput("bw_adjust", label = "Bandwidth adjustment:",
-              min = 0.2, max = 2, value = 1, step = 0.2)
-)
 
-renderPlot({
-  hist(faithful$eruptions, probability = TRUE, breaks = as.numeric(input$n_breaks),
-       xlab = "Duration (minutes)", main = "Geyser eruption duration")
-  
-  dens <- density(faithful$eruptions, adjust = input$bw_adjust)
-  lines(dens, col = "blue")
-})
-```
 
-## Embedded Application
+## Results
 
 It's also possible to embed an entire Shiny application within an R Markdown document using the `shinyAppDir` function. This example embeds a Shiny application located in another directory:
 
 ```{r tabsets, echo=FALSE}
-shinyAppDir(
-  system.file("examples/06_tabsets", package = "shiny"),
-  options = list(
-    width = "100%", height = 550
+
+shinyAppDir("/Users/Fex/Studium/UmWi/1. WS 2017:18/6_GeodataVisual/gdbv/",
+  options=list(
+    width="100%", height=550
   )
-)
+) 
+
 ```
 
 Note the use of the `height` parameter to determine how much vertical space the embedded application should occupy.

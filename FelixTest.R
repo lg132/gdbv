@@ -168,7 +168,7 @@ ggplot(nord2, aes(x=years, y=tonnage))+
   theme(legend.position = "right")+
   scale_fill_hue(l=40)+
   guides(fill=guide_legend(title="Countries"))+
-  labs(title="nordsee")
+  labs(title="nordsee LME")
 
 ggplot(ost2, aes(x=years, y=tonnage))+
   geom_area(aes(fill=factor(country)))+
@@ -179,7 +179,7 @@ ggplot(ost2, aes(x=years, y=tonnage))+
 #Was wird gefischt?
 
 View(listregions("lme"))
-polareezost <- catchdata(region="eez", 278, dimension = "country", measure="tonnage")
+eezost <- catchdata(region="eez", 278, dimension = "country", measure="tonnage")
 
 eezost2 <- eezost %>% gather(., key="country", value="tonnage", -c(years))
 
@@ -190,12 +190,12 @@ ggplot(eezost2, aes(x=years, y=tonnage))+
   guides(fill=guide_legend(title="Countries"))+
   labs(title="eez ostsee")
 
-eeznord <- catchdata(region="eez", 277, dimension = "taxon", measure="tonnage")
+eeznord <- catchdata(region="eez", 277, dimension = "country", measure="tonnage")
 
-eeznord2 <- eeznord %>% gather(., key="taxon", value="tonnage", -c(years))
+eeznord2 <- eeznord %>% gather(., key="country", value="tonnage", -c(years))
 
 ggplot(eeznord2, aes(x=years, y=tonnage))+
-  geom_area(aes(fill=factor(taxon)))+
+  geom_area(aes(fill=factor(country)))+
   theme(legend.position = "right")+
   scale_fill_hue(l=40)+
   guides(fill=guide_legend(title="Countries"))+
