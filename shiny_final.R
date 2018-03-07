@@ -62,17 +62,6 @@ ui <- fluidPage(
 # Define server logic required to draw plots and show tables ----
 server <- function(input, output) {
   
-  # Reactive expression to create data frame of all input values ----
-  # sliderValues <- reactive({
-  #   
-  #   data.frame(
-  #     Name = c("Range"),
-  #     Value = as.character(c(paste(input$range, collapse = " ")
-  #     )),
-  #     stringsAsFactors = FALSE)
-  #   
-  # })
-  
   # First reactive function returning basis for plots and tables (output 1 and 2)
   dataInput <- reactive({
     
@@ -159,11 +148,6 @@ server <- function(input, output) {
         geom_line(size=1.3)+
         theme(legend.position = "right")+
         labs(title = "Share of discards in total catch", y = "percentage")
-      
-      # ggplot(data=data_high, aes(x=years, y=perc_disc))+
-      #   geom_area(aes(fill=country))+
-      #   labs(title = "Discards > 30%",  y="percentage")+
-      #   theme(legend.position = "right")
     }
   })
   
