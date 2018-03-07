@@ -85,7 +85,7 @@ server <- function(input, output) {
     }
     else {
       data_table <- data %>%
-        mutate(perc_disc = discards/(landings+discards)) %>% 
+        mutate(perc_disc = (discards/(landings+discards))*100) %>% 
         group_by(country) %>% summarise(avg=mean(perc_disc))
     }
     
@@ -133,18 +133,23 @@ server <- function(input, output) {
     else {
       data <- data %>%
         mutate(perc_land = landings/(landings+discards)) %>%
-        mutate(perc_disc = discards/(landings+discards))
+        mutate(perc_disc = (discards/(landings+discards))*100)
       data1 <- data %>%
         group_by(country) %>%
         summarise(avg=mean(perc_disc)) %>%
-        filter(avg>0.3)
+        filter(avg>30)
       
       data_high <- data %>% filter(country %in% data1$country)
       
-      ggplot(data=data_high, aes(x=years, y=perc_disc))+
-        geom_area(aes(fill=country))+
+      ggplot(data=data_high, aes(x=years, y=perc_disc, colour=country))+
+        geom_line(size=1.3)+
         labs(title = "Discards > 30%",  y="percentage")+
-        theme(legend.position = "right")
+        theme(legend.position = "bottom")
+      
+      # ggplot(data=data_high, aes(x=years, y=perc_disc))+
+      #   geom_area(aes(fill=country))+
+      #   labs(title = "Discards > 30%",  y="percentage")+
+      #   theme(legend.position = "right")
     }
     
     
