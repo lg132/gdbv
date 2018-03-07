@@ -2,10 +2,6 @@ library(shiny)
 library(ggplot2)
 library(tidyverse)
 
-
-
-
-
 #read in data: ===============================================
 df_fishing_all <- source("df_fishing_all.Rdmpd")
 df_fishing_all <- df_fishing_all[[1]]
@@ -34,9 +30,14 @@ ui <- fluidPage(
       # Input: Select-option for data.frame
       selectInput(inputId = "dim",
                   label = "select dimension",
-                  choices = c("country", "catchtype"),
+                  choices = c("total catches", "discards")),
       
-      radioButtons(inputId = "dim", "alle oder nur zehn", c(0, 10)))
+      radioButtons(inputId = "table_len",
+                   label = "Show in table:",
+                   inline=T,
+                   choiceNames = c("5", "10", "15", "20", "all"),
+                   choiceValues = c(5, 10, 15, 20, 197))
+      
     ),
     
     # Main panel for displaying outputs ----
@@ -46,9 +47,9 @@ ui <- fluidPage(
       tabsetPanel(type="tabs",
                   tabPanel("Graph", plotOutput(outputId = "areaPlot")),
                   tabPanel("values", tableOutput("values"))
-                  )
       )
     )
+  )
 )
 
 
@@ -67,59 +68,52 @@ server <- function(input, output) {
   })
   
   # Reactive expression to create plots
+  
   dataInput <- reactive({
+    
     data <- switch(input$dim,
-                   "country" = df_fishing_all,
-                   "catchtype" = df_Q2)
+                   "total catches" = df_fishing_all,
+                   "discards" = df_Q2)
     range <- input$range
     
-    return(list("data"=data, "range"=range))
-  })
-  
-  tableInput <- reactive({
-    data <- dataInput()$data
-    range <- dataInput()$range
-    data <- data %>% filter(years>=range[1], years<=range[2])
     
-    if(colnames(data)[2]=="albania"){
-      data <- data %>% gather(., key="country", value="tonnage", -c(years)) %>%
-        group_by(country) %>% summarise(avg=mean(tonnage))
+    data_plot <- data %>% filter(years>=range[1], years<=range[2])
+    
+    if(input$dim == "total catches"){
+      data_table <- data_plot %>% gather(., key="country", value="tonnage", -c(years)) %>%
+        group_by(country) %>% summarise(avg=sum(tonnage))
     }
     else {
-      data <- data %>%
-        mutate(perc_disc = discards/(landings+discards)) %>% 
+      data_table <- data %>%
+        mutate(perc_disc = (discards/(landings+discards))*100) %>% 
         group_by(country) %>% summarise(avg=mean(perc_disc))
     }
     
-    return("data"=data)
+    return(list("data_plot"=data_plot, "data_table" = data_table))
   })
+  
+  calcTable <- reactive({
+    data_table <- dataInput()$data_table
+    if(input$dim=="total catches"){
+      data_table <- arrange(data_table, desc(avg))[c(1:input$table_len),]
+      colnames(data_table) <- c("country", "sum of catches in tons")
+    }
+    else{
+      data_table <- arrange(data_table, desc(avg))[c(1:input$table_len),]
+      colnames(data_table) <- c("country", "average discards in %")
+    }
+    
+    return(data_table)
+  
+  })
+  
   
   # OUTPUT 1: Plots
   output$areaPlot <- renderPlot({
     
-    data <- dataInput()$data
-    range <- dataInput()$range
-    data <- data %>% filter(years>=range[1], years<=range[2])
+    data <- dataInput()$data_plot
     
-    # if (colnames(data)[2]=="landings"){
-    #   data <- data %>%
-    #     mutate(perc_land = landings/(landings+discards)) %>% 
-    #     mutate(perc_disc = discards/(landings+discards))
-    #   data1 <- data %>%
-    #     group_by(country) %>%
-    #     summarise(avg=mean(perc_disc)) %>% 
-    #     filter(avg>0.3)
-    #   data2 <- data %>%
-    #     group_by(country) %>%
-    #     summarise(avg=mean(perc_disc)) %>%
-    #     filter(avg<0.3)
-    #   data_high <- data %>% filter(country %in% data1$country)
-    # 
-    #   ggplot(data=data_high, aes(x=years, y=perc_disc))+
-    #     geom_area(aes(fill=country))
-    #   }
-    
-    if (colnames(data)[2]=="albania"){
+    if (input$dim == "total catches"){
       data <- data %>% gather(., key="country", value="tonnage", -c(years)) #%>% 
       #  filter(years>=input$range[1], years<=input$range[2])
       data1 <- data %>% group_by(country) %>% summarise(avg=mean(tonnage)) %>% filter(avg>2000000)
@@ -139,34 +133,31 @@ server <- function(input, output) {
     else {
       data <- data %>%
         mutate(perc_land = landings/(landings+discards)) %>%
-        mutate(perc_disc = discards/(landings+discards))
+        mutate(perc_disc = (discards/(landings+discards))*100)
       data1 <- data %>%
         group_by(country) %>%
         summarise(avg=mean(perc_disc)) %>%
-        filter(avg>0.3)
-      # data2 <- data %>%
-      #   group_by(country) %>%
-      #   summarise(avg=mean(perc_disc)) %>%
-      #   filter(avg<0.3)
+        filter(avg>30)
+      
       data_high <- data %>% filter(country %in% data1$country)
       
-      ggplot(data=data_high, aes(x=years, y=perc_disc))+
-        geom_area(aes(fill=country))+
+      ggplot(data=data_high, aes(x=years, y=perc_disc, colour=country))+
+        geom_line(size=1.3)+
         labs(title = "Discards > 30%",  y="percentage")+
-        theme(legend.position = "right")
+        theme(legend.position = "bottom")
+      
+      # ggplot(data=data_high, aes(x=years, y=perc_disc))+
+      #   geom_area(aes(fill=country))+
+      #   labs(title = "Discards > 30%",  y="percentage")+
+      #   theme(legend.position = "right")
     }
     
-    #    if (colnames(data)[2]=="catchtype"){
-    #      ggplot(data=data, aes(x=years, y=percentage))+
-    #        geom_area(aes(fill=catchtype))+
-    #        scale_fill_brewer(palette = "Dark2")
-    #    }
     
   })
   
   # OUTPUT 2: Table
   output$values <- renderTable({
-    arrange(tableInput(), desc(avg))[c(1:10),]
+    calcTable()
   }) 
 }
 
