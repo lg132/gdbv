@@ -99,7 +99,7 @@ df_Q2$country <- countrynames[1]
 
 #get all entries of list into one data.frame
 for (i in 2:length(list_Q2)){
-  df_new <- df_Q2n[[i]]
+  df_new <- list_Q2[[i]]
   
   if (ncol(df_new)<3)
     df_new$discards <- 0
@@ -206,3 +206,30 @@ ggplot()+
 library(sf)
 shape_NS <- st_read("../gdbv/Maritime_Boundaries/MBEULSIV1.shp")
 plot(shape_NS)
+
+
+
+# eez map ----
+eez_all <- eez$id
+eez_names <- eez$title
+list_eez <- lapply(X = eez_all, FUN = catchdata, region="eez", measure="tonnage", dimension="catchtype")
+
+# create initial data.frame to be filled with remaining list entries
+df_eez <- list_eez[[1]]
+df_eez$eez <- eez_names[1]
+
+#get all entries of list into one data.frame
+for (i in 2:length(list_eez)){
+  df_new <- list_eez[[i]]
+  
+  if (ncol(df_new)<3)
+    df_new$discards <- 0
+  
+  df_new$eez <- eez_names[i]
+  #df_new <- df_new[, -1]
+  
+  df_eez <- bind_rows(df_eez, df_new)
+}
+
+write.table(df_eez, "df_eez", sep="\t")
+
