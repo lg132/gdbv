@@ -262,3 +262,40 @@ length(unique(eez$ID))
 test_join <- plyr::join(eez, EEZ, by="ID", type="left")
 
 intersects(test1, test2)
+
+
+# =======================================================
+library(raster)
+library(sf)
+#install.packages("tmap")
+library(tmap)
+library(dplyr)
+
+# eez_merge <- st_read("../../../../Dropbox/GeoVis/World_EEZ_v8_20140228_LR/World_EEZ_v8_2014.shp")
+# plot(eezmerge[2])
+# 
+# saui <-read.delim("../../../../Dropbox/GeoVis/sau_eez_felix.txt")
+# 
+# mapjoin <- read.delim("mapjoin")
+# View(eezmerge)
+# 
+# fakenews<-merge(eezmerge, saui, by.x="Country", by.y= "Country")
+# View(fakenews)
+# 
+# qtm(fakenews, fill="avg")
+# 
+# tm_shape(fakenews, fill = "avg")+
+#   tm_fill("avg", palette = "Blues", n=7, style = "jenks", legend.hist = T)
+
+saui <-read.delim("sau_eez_felix.txt")
+
+eez_shp <- st_read("../../../../Dropbox/GeoVis/World_EEZ_v8_20140228_LR/World_EEZ_v8_2014.shp")
+names(saui)[1] <- "Country"
+eez_merge <- merge(eez_shp, saui, by="Country", all.x=T)
+
+tm_shape(eez_merge, fill="avg")+
+  tm_fill("avg", palette = "Blues", n=5, style = "jenks", legend.hist = T)
+
+sum(is.na(mapjoin$avg))
+
+View(list_eez_c[[1]])
