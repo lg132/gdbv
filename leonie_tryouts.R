@@ -288,10 +288,15 @@ library(dplyr)
 #   tm_fill("avg", palette = "Blues", n=7, style = "jenks", legend.hist = T)
 
 saui <-read.delim("sau_eez_felix.txt")
+names(saui)[1] <- "Country"
 
 eez_shp <- st_read("../../../../Dropbox/GeoVis/World_EEZ_v8_20140228_LR/World_EEZ_v8_2014.shp")
-names(saui)[1] <- "Country"
-eez_merge <- merge(eez_shp, saui, by="Country", all.x=T)
+eez_shp_sau <- merge(eez_shp, saui[, -2], by="Country", all.x=T) %>% dplyr::select(Country, EEZ, sau_id, Longitude, Latitude, geometry)
+eez_shp_sau <- eez_shp_sau %>% dplyr::select(Country, EEZ, sau_id, Longitude, Latitude, geometry)
+#rgdal::writeOGR(obj=eez_shp_sau, dsn=".", layer="eez_shp_sau", driver="ESRI Shapefile")
+dump("eez_shp_sau", "eez_shp_sau.Rdmpd")
+
+eez_merge <- merge(eez_shp_sau, saui, by="Country", all.x=T)
 
 tm_shape(eez_merge, fill="avg")+
   tm_fill("avg", palette = "Blues", n=5, style = "jenks", legend.hist = T)

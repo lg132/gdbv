@@ -1,12 +1,16 @@
 library(shiny)
 library(ggplot2)
 library(tidyverse)
+library(tmap)
 
 
 #read in data: ----
 df_fishing_all <- source("df_fishing_all.Rdmpd")
 df_fishing_all <- df_fishing_all[[1]]
 df_Q2 <- read.delim("df_Q2")
+df_eez <-read.delim("df_eez")
+eez_shp_sau <- source("eez_shp_sau.Rdmpd")
+eez_shp_sau <- eez_shp_sau[[1]]
 
 # Define UI for seaaroundus app ----
 ui <- fluidPage(
@@ -53,7 +57,8 @@ ui <- fluidPage(
       # Output: Two tab panels: ----
       tabsetPanel(type="tabs",
                   tabPanel("Graph", plotOutput(outputId = "areaPlot")),
-                  tabPanel("Table", tableOutput("values"))
+                  tabPanel("Table", tableOutput("values")),
+                  tabPanel("Map", plotOutput(outputId = "mapPlot"))
       )
     )
   )
@@ -79,14 +84,20 @@ server <- function(input, output) {
     if(input$dim == "total catch"){
       data_table <- data_plot %>% gather(., key="country", value="tonnage", -c(years)) %>%
         group_by(country) %>% summarise(avg=sum(tonnage))
+      data_map <- df_eez %>% 
+        filter(years>=range[1], years<=range[2]) %>% group_by(eez) %>% 
+        summarise(avg=mean(landings+discards))
     }
     else {
       data_table <- data %>%
-        mutate(perc_disc = (discards/(landings+discards))*100) %>% 
-        group_by(country) %>% summarise(avg=mean(perc_disc))
+        #mutate(perc_disc = (discards/(landings+discards))*100) %>% 
+        group_by(country) %>% summarise(avg=mean((discards/(landings+discards))*100))
+      data_map <- df_eez %>%
+        filter(years>=range[1], years<=range[2]) %>% group_by(eez) %>% 
+        summarise(avg=mean(discards/(landings+discards))*100)
     }
     
-    return(list("data_plot"=data_plot, "data_table" = data_table, "number"=number))
+    return(list("data_plot"=data_plot, "data_table" = data_table, "data_map" = data_map, "number"=number))
   })
   
   # Second reactive expression returning values for tables (output 2) ----
@@ -134,11 +145,11 @@ server <- function(input, output) {
         labs(title = "Total catch")
     }
     else {
-      data <- data %>%
-        mutate(perc_disc = (discards/(landings+discards))*100)
+      # data <- data %>%
+      #   mutate(perc_disc = (discards/(landings+discards))*100)
       data1 <- data %>%
         group_by(country) %>%
-        summarise(avg=mean(perc_disc)) %>%
+        summarise(avg=mean((discards/(landings+discards))*100)) %>%
         arrange(., desc(avg)) %>% 
         top_n(., n=number)
       
@@ -154,6 +165,15 @@ server <- function(input, output) {
   # Output 2: Table ----
   output$values <- renderTable({
     calcTable()
+  })
+  
+  # Output 3: Map ----
+  output$mapPlot <- renderPlot({
+    
+    eez_merge <- merge(eez_shp_sau, data_map, by="sau_id", all.x=T)
+    
+    tm_shape(eez_merge, fill="avg")+
+      tm_fill("avg", palette = "Blues", n=5, style = "jenks", legend.hist = T)
   })
 }
 
