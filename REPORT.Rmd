@@ -25,9 +25,14 @@ The aim of this project is to get relevant information from the database in orde
 
 # 2 Materials and Methods
 
-The basis for this project is the seaaroundus-R-package providing functions to access the seaaroundus database. The main function to get specific data is the `catchdata`-function which transfers the input arguments to the database and returns either a data frame or a plot. Input arguments specify the spatial dimension (`region`, `id`) as well as the type of data (`measure`, `dimension`), i.e. how it is quantified and what attributes are presented. The arguments `limit`, `chart` and `...` refer to how the data is returned.
+The basis for this project is the seaaroundus-R-package providing functions to access the seaaroundus database. The main function to get specific data is the `catchdata`-function which transfers the input arguments to the database and returns either a data frame or a plot: 
+```{r, eval=FALSE}
+seaaroundus::catchdata(region, id, measure = "tonnage", dimension = "taxon", limit = 10, chart = FALSE, ...)
+```
 
-```{r}
+Input arguments specify the spatial dimension (`region`, `id`) as well as the type of data (`measure`, `dimension`), i.e. how it is quantified and what attributes are presented. The arguments `limit`, `chart` and `...` refer to how the data is returned.
+
+```{r, eval=F, include=F}
 seaaroundus::catchdata
 ```
 
@@ -349,7 +354,7 @@ server <- function(input, output) {
     }
     else{
       data_table <- arrange(data_table, desc(avg))[c(1:input$table_len),]
-      colnames(data_table) <- c("country", "share of discards in average catch per year in %")
+      colnames(data_table) <- c("country", "average share of discards in total catch per year in %")
     }
     
     return(data_table)
@@ -412,14 +417,17 @@ shinyApp(ui = ui, server = server, options = list(height = 550))
 
 ```
 
-The "total catch" - plot shows the development of the average amount of catch per year in tonnage over time as a stacked chart for up to 12 countries which are ordered descendingly by amount of catch. The remaining countries are summarised as "Others" for each chosen number of countries. The default settings display 6 countries for the whole time period from 1950 to 2014, showing Japan to be the country with the highest average catch during this time span followed by the Russian Federation, Peru, USA, China and Norway. The table output provides the catch per year averaged over the chosen time period and offers to return the data for 5, 10, 15, 20 or all countries, which in total is 197. The default here is set to 5 countries. 
-The "discards" - plot shows the development of the share of discards in the average total catch in percent over time as a line plot. Again, up to 12 countries can be displayed chosen by the rank they take when descendingly ordered by average share of discards. Kuwait has the highest amount of discards within the default time span followed by SaintPierre & Miquelon (France), El Salvador, Costa Rica, Portugal and Nicaragua.
+The "total catch"-plot shows the development of the total amount of catch per year in tonnage over time as a stacked chart for up to 12 countries which are ordered descendingly by averaged amount of catch. For each chosen number of countries the remaining countries are summarised as "Others", accordingly. The default settings display 6 countries for the whole time period from 1950 to 2014, showing Japan to be the country with the highest average catch during this time span followed by the Russian Federation, Peru, USA, China and Norway. The table output provides the average catch per year and offers to return the data for 5, 10, 15, 20 or all countries, which in total is 197. Here, the default is set to 5 countries. 
+The "discards"-plot shows the development of the share of discards in total catch in percent over time as a line plot. Again, up to 12 countries can be displayed chosen by the rank they occupy when descendingly ordered by average share of discards. Kuwait has the highest amount of discards within the default time span followed by SaintPierre & Miquelon (France), El Salvador, Costa Rica, Portugal and Nicaragua which can be derived from the table.
+The 
 
 # 4 Discussion and Conclusion
 
+The provided `catchdata`-function in the seaaroundus-package serves well to get differently combined information on global fish catch data. However, there are some limits to the function. For example, the `id` input argument only allows to put in one id leading to strong restrictions concerning information on more than one id within the specified `region` argument. Furthermore, some quite interesting combinations, though listed as possible, do not return any data at all, such as `catchdata(region="taxon", id="", measure="tonnage", dimension="country")`. For the purpose of a more free handling of the fish catch data and faster processing of required queries, a direct access to the database would have been desirable. However, within the scope of this project, it was not possible to easily work around the provided `catchdata`-function and create, e.g., a direct server connection. Hence, the desired information on catch data for all countries had to be performed via a loop processing huge amount of data locally thus taking up a relatively large amount of time. 
 
+The visualisation of the queried data via R-Shiny provides interactive features allowing the viewer to define the output, i.e. adjust the data according to one's interests. Within the timeframe of this project, only a glimpse into the manifold possibilites of interactive visualisation provided by the shiny web app could be tested and implemented. There most certainly is a more efficient way to process the changing data input and transform it into the wanted output. Moreover, some further possibilities of outputs could be implemented ranging from additional ways to display the current data to adding more choices towards fish catch data.
 
-
-The seaaroundus database provides comprehensive data on global fish catch serving to answer different ecological, political and economical questions related to worldwide fishing. 
+To conclude, the seaaroundus database provides comprehensive data on global fish catch serving to answer different ecological, political and economical questions related to worldwide fishing. The data can be queried and downloaded from the website or accessed via the provided R-package "seaaroundus". However, both ways have limitations concerning some data queries. For the purpose of this course, a direct access to the database would have been preferable, making it possible to formulate personalised SQL-queries and shift computing effort which allows for more data processing.
+However, the result of this project has to be considered against the background of a limited timeframe where several different materials and methods were taken into account. In any case, the personal perception concerning gain of knowledge and skills fof each group member is: thumbs up.
 
 
