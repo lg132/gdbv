@@ -232,4 +232,33 @@ for (i in 2:length(list_eez)){
 }
 
 write.table(df_eez, "df_eez", sep="\t")
+attribute <- read.csv("attribute.csv")
 
+att %in% eez_names
+popo <- intersect(attribute$Country, eez$title)
+
+att <- attribute$Country
+eez_names
+att[6]
+summary(is.element(att, eez_names))
+
+eez_shp <- st_read("../../../../Dropbox/GeoVis/World_EEZ_v7_20121120_LR/World_EEZ_v7_2012.shp")
+plot(eez_shp)
+plot(eez_shp[3])
+
+# ================== AB HIER TRYOUTS ZU JOIN =====================
+
+EEZ <- data.frame(EEZ=eez_shp$EEZ)
+
+EEZ$ID <- substr(EEZ$EEZ, start = 1, stop = 5)
+length(unique(EEZ$id))
+
+eez$ID <- substr(eez$title, start = 1, stop = 5)
+length(unique(eez$ID))
+# 
+# test1 <- data.frame("ID"=unique(EEZ$id))
+# test2 <- data.frame("ID"=unique(eez$ID))
+
+test_join <- plyr::join(eez, EEZ, by="ID", type="left")
+
+intersects(test1, test2)
