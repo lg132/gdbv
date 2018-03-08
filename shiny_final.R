@@ -2,6 +2,7 @@ library(shiny)
 library(ggplot2)
 library(tidyverse)
 
+
 #read in data: ----
 df_fishing_all <- source("df_fishing_all.Rdmpd")
 df_fishing_all <- df_fishing_all[[1]]
@@ -19,7 +20,7 @@ ui <- fluidPage(
     # Sidebar panel for inputs ----
     sidebarPanel(
       
-      # Input: Select-option for type of display in plots ----
+      # Input: Select-option for type of information in plots ----
       selectInput(inputId = "dim",
                   label = "Select type",
                   choices = c("total catch", "discards")),
@@ -38,7 +39,7 @@ ui <- fluidPage(
                   choices = c(1:12),
                   selected = 6),
       
-      # Input: Select-option for number of entries to be displayed in tables
+      # Input: Select-option for number of entries to be listed in tables
       radioButtons(inputId = "table_len",
                    label = "Select number of entries in Table",
                    inline=T,
@@ -95,11 +96,11 @@ server <- function(input, output) {
     
     if(input$dim=="total catch"){
       data_table <- arrange(data_table, desc(avg))[c(1:input$table_len),]
-      colnames(data_table) <- c("country", "sum of catches in tons")
+      colnames(data_table) <- c("country", "average catch per year in tons")
     }
     else{
       data_table <- arrange(data_table, desc(avg))[c(1:input$table_len),]
-      colnames(data_table) <- c("country", "average discards in %")
+      colnames(data_table) <- c("country", "share of discards in average catch per year in %")
     }
     
     return(data_table)
@@ -140,7 +141,6 @@ server <- function(input, output) {
         summarise(avg=mean(perc_disc)) %>%
         arrange(., desc(avg)) %>% 
         top_n(., n=number)
-      # filter(avg>30)
       
       data_high <- data %>% filter(country %in% data1$country)
       
@@ -155,9 +155,7 @@ server <- function(input, output) {
   output$values <- renderTable({
     calcTable()
   })
-  
 }
-
 
 # Create Shiny app ----
 shinyApp(ui = ui, server = server)
