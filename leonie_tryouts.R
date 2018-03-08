@@ -217,6 +217,7 @@ list_eez <- lapply(X = eez_all, FUN = catchdata, region="eez", measure="tonnage"
 # create initial data.frame to be filled with remaining list entries
 df_eez <- list_eez[[1]]
 df_eez$eez <- eez_names[1]
+df_eez$id <- eez_all[1]
 
 #get all entries of list into one data.frame
 for (i in 2:length(list_eez)){
@@ -226,11 +227,12 @@ for (i in 2:length(list_eez)){
     df_new$discards <- 0
   
   df_new$eez <- eez_names[i]
-  #df_new <- df_new[, -1]
+  df_new$id <- eez_all[i]
   
   df_eez <- bind_rows(df_eez, df_new)
 }
 
+names(df_eez)[5] <- "sau_id"
 write.table(df_eez, "df_eez", sep="\t")
 attribute <- read.csv("attribute.csv")
 
