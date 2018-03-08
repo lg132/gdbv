@@ -43,7 +43,9 @@ ui <- fluidPage(
                    label = "Select number of entries in Table",
                    inline=T,
                    choiceNames = c("5", "10", "15", "20", "all"),
-                   choiceValues = c(5, 10, 15, 20, 197))
+                   choiceValues = c(5, 10, 15, 20, 197)),
+      hr(),
+      helpText("this is a text or not")
     ),
     
     # Main panel for displaying outputs with options ----
@@ -51,8 +53,11 @@ ui <- fluidPage(
       
       # Output: Two tab panels: ----
       tabsetPanel(type="tabs",
-                  tabPanel("Graph", plotOutput(outputId = "areaPlot")),
-                  tabPanel("Table", tableOutput("values"))
+                  tabPanel("Graph", plotOutput(outputId = "areaPlot"), textOutput(outputId = "textgraph")),
+                  tabPanel("Table", tableOutput("values"), textOutput(outputId = "texttable")),
+      
+      hr(),
+      helpText("This is supposed to be a helpful Text")
       )
     )
   )
@@ -160,11 +165,21 @@ server <- function(input, output) {
         theme(legend.position = "right")+
         labs(title = "Share of discards in total catch", y = "percentage")
       
-      # ggplot(data=data_high, aes(x=years, y=perc_disc))+
-      #   geom_area(aes(fill=country))+
-      #   labs(title = "Discards > 30%",  y="percentage")+
-      #   theme(legend.position = "right")
+      
+
     }
+  })
+  
+
+  
+  output$textgraph <- renderText({
+    if(input$dim == "total catch") "graph of catches"
+    else "graph of discards"
+    })
+  
+  output$texttable <- renderText({
+    if(input$dim == "total catch") "table of total catch"
+    else "table of discards"
   })
   
   # Output 2: Table ----
