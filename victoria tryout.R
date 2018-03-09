@@ -188,3 +188,4 @@ which(eezbla$sau_id == 648)
 
 #sum up Russia 
 eezbla$avg[which(eezbla$sau_id == 648)] <-sum(eezbla$avg[which(eezbla$sau_id %in% c(648,645,647,649,912,913))])
+data_map$avg[which(data_map$sau_id == 648)] <-sum(data_map$avg[which(data_map$sau_id %in% c(648,645,647,649,912,913))])
