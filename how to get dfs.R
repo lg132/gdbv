@@ -14,7 +14,7 @@ countrynames <- regiondf$title[-c(61,93,192)]
 countryids <- regiondf$id[-c(61,93,192)]
 
 #------------------------------
-# Dataframe df_total_catch: Total fish catch in tons for every country for every year
+# Dataframe df_total_catch: Total fish catch in tons for every country and every year
 #------------------------------
 df_total_catch<- catchdata('fishing-entity', countryids[1], measure='tonnage', dimension='country')
 
@@ -29,7 +29,7 @@ for (i in 2:length(countryids)){
 
 
 #---------------------------
-# Dataframe df_discards: Landings and discards of every country for every year 
+# Dataframe df_discards: Landings and discards of every country and every year 
 #----------------------------
 # Execute catchdata with all countryids; output as list
 list_catchtype <- lapply(X = countryids, FUN = catchdata, region="fishing-entity", measure="tonnage", dimension="catchtype")
@@ -54,7 +54,7 @@ for (i in 2:length(list_catchtype)){
 }
 
 #---------------------------
-# Dataframe df_eez: Landings and discards of every EEZ for every year
+# Dataframe df_eez: Landings and discards in every EEZ for every year
 #----------------------------
 eez <- listregions(region="eez")
 
