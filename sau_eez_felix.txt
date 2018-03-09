@@ -1,4 +1,4 @@
-"eez"	"avg"	"sau_id"
+"Country"	"avg"	"sau_id"
 "1"	"Albania"	5705.35907692308	8
 "2"	"Algeria"	126778.552307692	12
 "3"	"American Samoa"	3335.29907692308	16
