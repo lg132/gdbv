@@ -101,10 +101,13 @@ server <- function(input, output) {
         filter(years>=range[1], years<=range[2]) %>% group_by(sau_id) %>%
         summarise(avg=mean(landings+discards))
       
-      #summarise the Russia EEZs:
+      #summarise Russia's EEZs:
       data_map$avg[which(data_map$sau_id == 648)] <-sum(data_map$avg[which(data_map$sau_id %in% c(648,645,647,649,912,913))])
       
-      #classes and title for EEZ-map
+      #summarise USA's EEZs
+      data_map$avg[which(data_map$sau_id == 953)] <-sum(data_map$avg[which(data_map$sau_id %in% c(953,954,956))])
+      
+      #title for EEZ-map
       title_map <- "Total catch in tons"
     }
     else { 
@@ -119,17 +122,18 @@ server <- function(input, output) {
         filter(years>=range[1], years<=range[2]) %>% group_by(sau_id) %>%
         summarise(avg=mean(discards/(landings+discards))*100)
       
-      #summarise the Russia EEZs:
+      #summarise Russia's EEZs:
       data_map$avg[which(data_map$sau_id == 648)] <-mean(data_map$avg[which(data_map$sau_id %in% c(648,645,647,649,912,913))])
       
-      #classes for EEZ-map
+      #summarise USA's EEZs:
+      data_map$avg[which(data_map$sau_id == 953)] <-mean(data_map$avg[which(data_map$sau_id %in% c(953,954,956))])
+      
+      #title for EEZ-map
       title_map <- "Discards in %"
     }
     
     return(list("data_plot"=data_plot, "data_table"=data_table, "data_map"=data_map,
-                "number"=number, 
-                #"pal"=pal, 
-                "title_map"=title_map))
+                "number"=number, "title_map"=title_map))
   })
   
   # Second reactive expression returning values for tables (output 2) ----
@@ -213,13 +217,19 @@ server <- function(input, output) {
     #merge the average values (total catch or percentage of discards) and the shapefile:
     eez_merge <- merge(eez_shp_sau, data_map, by="sau_id", all.x=T)
 
-    pal <- colorNumeric("Blues", domain = eez_merge$avg)
+    pal <- colorNumeric("Reds", domain = eez_merge$avg)
+    labels_map <- sprintf(
+      "<strong>%s</strong><br/>%g",
+      eez_merge$EEZ, eez_merge$avg) %>% lapply(htmltools::HTML)
     
-    leaflet(eez_merge)  %>% addTiles() %>% 
-      #setView(sfn2, min(sfn2$Longitude), min(sfn2$Latitude), max(sfn2$Longitude), max(sfn2$Latitude)) %>% 
-      addProviderTiles("OpenSeaMap") %>%
-      addPolygons(stroke = FALSE, fillColor = ~pal(eez_merge$avg),
-                  fillOpacity = 0.8, smoothFactor = 0.5) %>% 
+    leaflet(options = leafletOptions(minZoom = 1, maxZoom = 10)) %>% 
+      addTiles() %>% 
+      setView(lng = 0, lat = 40, zoom = 2) %>% 
+      addProviderTiles("Stamen.TerrainBackground") %>%
+      addPolygons(data=eez_merge, stroke = TRUE, color = ~pal(eez_merge$avg),
+                  fillOpacity = 0.6, smoothFactor = 1, weight = 0.5,  
+                  highlightOptions = highlightOptions(color = "black", weight = 2, bringToFront = TRUE),
+                  label = labels_map) %>% 
       addLegend("bottomright", pal=pal, values= eez_merge$avg, title = title_map)
 
     #tm_shape(eez_merge, fill="avg")+
