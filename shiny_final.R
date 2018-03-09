@@ -2,7 +2,7 @@ library(shiny)
 library(ggplot2)
 library(tidyverse)
 library(sf)
-library(rgdal)
+#library(rgdal)
 library(leaflet)
 
 
@@ -13,8 +13,8 @@ df_eez <-read.delim("df_eez")
 sau_id <-read.delim("sau_id")
 
 #eez_shp <- st_read("../../../../Dropbox/GeoVis/World_EEZ_v8_20140228_LR/World_EEZ_v8_2014.shp")
-#eez_shp <- st_read("~/Dropbox/GeoVis/World_EEZ_v8_20140228_LR/World_EEZ_v8_2014.shp")
-eez_shp <- readOGR("../../../../Dropbox/GeoVis/World_EEZ_v8_20140228_LR/World_EEZ_v8_2014.shp")
+eez_shp <- st_read("~/Dropbox/GeoVis/World_EEZ_v8_20140228_LR/World_EEZ_v8_2014.shp")
+#eez_shp <- readOGR("../../../../Dropbox/GeoVis/World_EEZ_v8_20140228_LR/World_EEZ_v8_2014.shp")
 
 #Add the SeeAroundUs EEZ Id  to the shapefile:
 eez_shp_sau <- merge(eez_shp, sau_id, by="Country", all.x=T)
