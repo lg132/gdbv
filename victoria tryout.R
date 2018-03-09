@@ -172,5 +172,5 @@ eez_shp$avg <- mapjoin$avg #SHAPEFILE INKLUSIVE AVERAGE
 #========RENAME!
 
 
-#write.table(df_fishing_all, "df_total_catch", sep="\t") 
+write.table(df_fishing_all, "df_total_catch", sep="\t") 
 #write.table(df_Q2, "df_discards", sep="\t") 

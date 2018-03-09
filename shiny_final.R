@@ -12,6 +12,7 @@ df_eez <-read.delim("df_eez")
 sau_id <-read.delim("sau_id")
 
 #eez_shp <- st_read("../../../../Dropbox/GeoVis/World_EEZ_v8_20140228_LR/World_EEZ_v8_2014.shp")
+eez_shp <- st_read("~/Dropbox/GeoVis/World_EEZ_v8_20140228_LR/World_EEZ_v8_2014.shp")
 
 #Add the SeeAroundUs EEZ Id  to the shapefile:
 eez_shp_sau <- merge(eez_shp, sau_id, by="Country", all.x=T) %>% dplyr::select(Country, EEZ, sau_id, Longitude, Latitude, geometry)
@@ -62,7 +63,7 @@ ui <- fluidPage(
       # Output: Two tab panels: ----
       tabsetPanel(type="tabs",
                   tabPanel("Graph", plotOutput(outputId = "areaPlot")),
-                  tabPanel("Table", tableOutput("values")),
+                  tabPanel("Table", tableOutput("valuesTable")),
                   tabPanel("Map", plotOutput(outputId = "mapPlot"))
       )
     )
@@ -73,7 +74,7 @@ ui <- fluidPage(
 # Define server logic required to draw plots and show tables ----
 server <- function(input, output) {
   
-  # First reactive function returning basis for plots and tables (output 1 and 2)
+  # First reactive function returning basis for plots and tables (output 1-3)
   dataInput <- reactive({
     
     data <- switch(input$type,
@@ -84,19 +85,28 @@ server <- function(input, output) {
     
     number <- input$number
     
+    #Filter the dataframe (total_catch or discards) depending on the selected time range:
     data_plot <- data %>% filter(years>=range[1], years<=range[2])
     
     if(input$type == "total catch"){
+      
+      #average total catch for every country:
       data_table <- data_plot %>% gather(., key="country", value="tonnage", -c(years)) %>%
         group_by(country) %>% summarise(avg=sum(tonnage))
+      
+      #average total catch for every EEZ:
       data_map <- df_eez %>%
         filter(years>=range[1], years<=range[2]) %>% group_by(sau_id) %>%
         summarise(avg=mean(landings+discards))
     }
-    else {
+    else { 
+      
+      #average percentage of discards for every country:
       data_table <- data %>%
         mutate(perc_disc = (discards/(landings+discards))*100) %>% 
         group_by(country) %>% summarise(avg=mean(perc_disc))
+      
+      #average percentage of discards for every EEZ:
       data_map <- df_eez %>%
         filter(years>=range[1], years<=range[2]) %>% group_by(sau_id) %>%
         summarise(avg=mean(discards/(landings+discards))*100)
@@ -112,6 +122,7 @@ server <- function(input, output) {
     data_table <- dataInput()$data_table
     
     if(input$type=="total catch"){
+      #sorting the table by average catch (from highest to lowest), take only the selected number 
       data_table <- arrange(data_table, desc(avg))[c(1:input$table_len),]
       colnames(data_table) <- c("country", "average catch per year in tons")
     }
@@ -169,7 +180,7 @@ server <- function(input, output) {
   })
   
   # Output 2: Table ----
-  output$values <- renderTable({
+  output$valuesTable <- renderTable({
     calcTable()
   })
   
