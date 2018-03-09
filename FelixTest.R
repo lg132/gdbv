@@ -432,4 +432,3 @@ leaflet(sfn2)  %>% addTiles() %>%
               fillOpacity = 0.8, smoothFactor = 0.5) %>% 
   addLegend("bottomright", pal=pal_fun, values= sfn2$avg, title = 'Discards')
 
-
