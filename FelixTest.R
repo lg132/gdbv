@@ -426,7 +426,7 @@ leaflet(eez_merge) %>%
     
 pal_fun <- colorQuantile("Blues", n = 4, domain = sfn2$avg, alpha=1.2)
 leaflet(sfn2)  %>% addTiles() %>% 
-  setView(sfn2, min(sfn2$Longitude), min(sfn2$Latitude), max(sfn2$Longitude), max(sfn2$Latitude)) %>% 
+  #setView(sfn2, min(sfn2$Longitude), min(sfn2$Latitude), max(sfn2$Longitude), max(sfn2$Latitude)) %>% 
   addProviderTiles("OpenSeaMap") %>%
   addPolygons(stroke = FALSE, fillColor = ~pal_fun(sfn2$avg),
               fillOpacity = 0.8, smoothFactor = 0.5) %>% 
