@@ -1,7 +1,9 @@
 
 # CREATING THE DATA FRAMES
 #--------------------------
+library(seaaroundus)
 
+#data frame with countries and country ids to get catch data from the SAU server:
 regiondf <- listregions("fishing-entity")
 
 #Error Messages in:
@@ -16,11 +18,11 @@ countryids <- regiondf$id[-c(61,93,192)]
 #------------------------------
 # Dataframe df_total_catch: Total fish catch in tons for every country for every year
 #------------------------------
+#get a data frame with the total catches of the first country from the SAU server:
 df_total_catch<- catchdata('fishing-entity', countryids[1], measure='tonnage', dimension='country')
 
+#loop over all countries:
 for (i in 2:length(countryids)){ 
-  #beginning with 2.column (first one is year)
-  #every new column is the time series of total fish catches for one country:
   newcol<- catchdata('fishing-entity', countryids[i], measure='tonnage', dimension='country')
   df_total_catch[countrynames[i]] <-newcol[,2]
 }
@@ -31,7 +33,7 @@ for (i in 2:length(countryids)){
 #---------------------------
 # Dataframe df_discards: Landings and discards of every country for every year 
 #----------------------------
-# Execute catchdata with all countryids; output as list
+# Execute catchdata for all countryids; output as list
 list_catchtype <- lapply(X = countryids, FUN = catchdata, region="fishing-entity", measure="tonnage", dimension="catchtype")
 
 # for further processing the data has to be extracted from the list and put into one data.frame: ----
@@ -81,4 +83,5 @@ for (i in 2:length(list_eez)){
 #write.table(df_eez, "df_eez", sep="\t")
 
 #---------------------------
-# sau_id: changed the eez names of df_eez manually to be equal to the names in the shapefile
+# Dataframe sau_id: changed the EEZ names of df_eez manually to be equal to the names in the shapefile
+#---------------------------
