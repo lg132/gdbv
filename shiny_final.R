@@ -62,9 +62,9 @@ ui <- fluidPage(
       
       # Output: Two tab panels: ----
       tabsetPanel(type="tabs",
-                  tabPanel("Graph", plotOutput(outputId = "areaPlot")),
-                  tabPanel("Table", tableOutput("valuesTable")),
-                  tabPanel("Map", plotOutput(outputId = "mapPlot"))
+                  tabPanel("Graph", plotOutput(outputId = "tabPlot")),
+                  tabPanel("Table", tableOutput("tabTable")),
+                  tabPanel("Map", plotOutput(outputId = "tabMap"))
       )
     )
   )
@@ -137,7 +137,7 @@ server <- function(input, output) {
   
   
   # Output 1: Plots ----
-  output$areaPlot <- renderPlot({
+  output$tabPlot <- renderPlot({
     
     data <- dataInput()$data_plot
     number <- as.integer(dataInput()$number) #the number of countries shown in the graph 
@@ -184,12 +184,12 @@ server <- function(input, output) {
   })
   
   # Output 2: Table ----
-  output$valuesTable <- renderTable({
+  output$tabTable <- renderTable({
     calcTable()
   })
   
   # Output 3: Map ----
-  output$mapPlot <- renderPlot({
+  output$tabMap <- renderPlot({
     
     data_map <- dataInput()$data_map
 
