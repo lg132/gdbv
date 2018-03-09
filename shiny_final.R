@@ -12,11 +12,12 @@ df_eez <-read.delim("df_eez")
 sau_id <-read.delim("sau_id")
 
 #eez_shp <- st_read("../../../../Dropbox/GeoVis/World_EEZ_v8_20140228_LR/World_EEZ_v8_2014.shp")
-eez_shp <- st_read("~/Dropbox/GeoVis/World_EEZ_v8_20140228_LR/World_EEZ_v8_2014.shp")
+#eez_shp <- st_read("~/Dropbox/GeoVis/World_EEZ_v8_20140228_LR/World_EEZ_v8_2014.shp")
+eez_shp <- readOGR("../../../../Dropbox/GeoVis/World_EEZ_v8_20140228_LR/World_EEZ_v8_2014.shp")
 
 #Add the SeeAroundUs EEZ Id  to the shapefile:
-eez_shp_sau <- merge(eez_shp, sau_id, by="Country", all.x=T) %>% dplyr::select(Country, EEZ, sau_id, Longitude, Latitude, geometry)
-eez_shp_sau <- eez_shp_sau %>% dplyr::select(Country, EEZ, sau_id, Longitude, Latitude, geometry)
+eez_shp_sau <- merge(eez_shp, sau_id, by="Country", all.x=T)
+#eez_shp_sau <- eez_shp_sau %>% dplyr::select(Country, EEZ, sau_id, Longitude, Latitude, geometry)
 
 # Define UI for seaaroundus app ----
 ui <- fluidPage(
@@ -64,7 +65,7 @@ ui <- fluidPage(
       tabsetPanel(type="tabs",
                   tabPanel("Graph", plotOutput(outputId = "tabPlot")),
                   tabPanel("Table", tableOutput("tabTable")),
-                  tabPanel("Map", plotOutput(outputId = "tabMap"))
+                  tabPanel("Map", leafletOutput(outputId = "tabMap"))
       )
     )
   )
@@ -98,6 +99,9 @@ server <- function(input, output) {
       data_map <- df_eez %>%
         filter(years>=range[1], years<=range[2]) %>% group_by(sau_id) %>%
         summarise(avg=mean(landings+discards))
+      
+      #classes and title for EEZ-map
+      title_map <- "Total catch in tons"
     }
     else { 
       
@@ -110,10 +114,15 @@ server <- function(input, output) {
       data_map <- df_eez %>%
         filter(years>=range[1], years<=range[2]) %>% group_by(sau_id) %>%
         summarise(avg=mean(discards/(landings+discards))*100)
+      
+      #classes for EEZ-map
+      title_map <- "Discards in %"
     }
     
-    return(list("data_plot"=data_plot, "data_table" = data_table, "data_map" = data_map,
-                "number"=number))
+    return(list("data_plot"=data_plot, "data_table"=data_table, "data_map"=data_map,
+                "number"=number, 
+                #"pal"=pal, 
+                "title_map"=title_map))
   })
   
   # Second reactive expression returning values for tables (output 2) ----
@@ -189,15 +198,25 @@ server <- function(input, output) {
   })
   
   # Output 3: Map ----
-  output$tabMap <- renderPlot({
+  output$tabMap <- renderLeaflet({
     
     data_map <- dataInput()$data_map
+    title_map <- dataInput()$title_map
 
     #merge the average values (total catch or percentage of discards) and the shapefile:
     eez_merge <- merge(eez_shp_sau, data_map, by="sau_id", all.x=T)
 
-    tm_shape(eez_merge, fill="avg")+
-      tm_fill("avg", palette = "Blues", n=5, style = "jenks", legend.hist = T)
+    pal <- colorNumeric("Blues", domain = eez_merge$avg)
+    
+    leaflet(eez_merge)  %>% addTiles() %>% 
+      #setView(sfn2, min(sfn2$Longitude), min(sfn2$Latitude), max(sfn2$Longitude), max(sfn2$Latitude)) %>% 
+      addProviderTiles("OpenSeaMap") %>%
+      addPolygons(stroke = FALSE, fillColor = ~pal(eez_merge$avg),
+                  fillOpacity = 0.8, smoothFactor = 0.5) %>% 
+      addLegend("bottomright", pal=pal, values= eez_merge$avg, title = title_map)
+
+    #tm_shape(eez_merge, fill="avg")+
+    #  tm_fill("avg", palette = "Blues", n=5, style = "jenks", legend.hist = T)
   })
 }
 

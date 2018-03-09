@@ -64,7 +64,7 @@ Options for `dimension` are
 
 The arguments `limit` and `chart` give the possibilty for some queries to limit the returned data and to return it as a chart instead of a `data.frame`.
 
-The `catchdata`-function does not provide the option to get information for more than one `id` at once. That's why a loop was run on the function passing a vector with all required ids in order to get overall information stored in one `data.frame`. This was done to get information on 
+The `catchdata`-function does not provide the option to get information for more than one `id` at once. That is why a loop was run on the function passing a vector with all required ids in order to get overall information stored in one `data.frame`. This was done to get information on 
 
 * the total catch for each country (`region="fishing-entity"` and `dimension="country"`)
 * the amount of landings and discards for each country (`region="fishing-entity"` and `dimension="catchtype"`)
@@ -86,8 +86,6 @@ for (i in 2:length(countryids)){
 }
 ```
 
-The shapefile of the worldwide EEZs was provided by the Marine Regions Geodatabase ([www.marineregions.org](www.marineregions.org)), which is managed by the Flanders Marine Institute. The map in the shiny app uses the version of 2014. Because neither the ids nor the country names correspond completely with the names of the SeaAroundUs data, the latter were adjusted manually. After this correction, the EEZ id of the SAU data could be added to the shapefile and be used as a key for merging. The SAU database contains 280 EEZs, while the Marine Regions database has only 249 EEZs. Because some zones within one database are split up into different zones in the other database or are missing, the zones shown in the map are reduces to 205 after the merge. 
-
 ## Visualisation
 
 In order to visualise the queried data _R-Shiny Web App_ was used. This allows an interactive display of the information gathered on global fish catch. In general, the data is shown in a graph as well as in a table to get an overview of the numbers. To get an impression of the spatial distribution a map is displayed, too. All three outputs react to different dynamic input variables which the user is able to modify according to his or her interests. 
@@ -102,9 +100,9 @@ In the first one, the user interface is specified. Here, the layout contains a `
 * the number of entries to be listed in the tables (5 choices given)
 
 The `MainPanel` defines the arrangement of the output in Tabs, i.e. showing either the plot *or* the table *or* the map. 
-In the second argument of the shiny app the _server_ is defined, being the part which reacts to the varying input variables and which compiles the output. First, two reactive functions, `dataInput` and `calcTable`, return the changing data which are needed to produce the outputs. Then, the outputs (plot, table and map) are created. Therefore, the returned changed input data from `dataInput()` is further processed for the `output$tabGraph` via an `if else` statement and plotting commands using `ggplot()`. The return of the `calcTable`-function gets passed to the `output$tabTable` to create the respective table. In a last step, `output$tabMap`, the map is created via `leaflet` which allows the user to zoom in and out and have a closer look at the different eezs. The map is produced each time `dataInput$data_map` changes. 
-The Shiny App is run via the command `shinyApp(ui = ui, server = server)`. 
-The whole code for the Shiny App can be found in Appendix B.
+In the second argument of the shiny app the _server_ is defined, being the part which reacts to the varying input variables and which compiles the output. First, two reactive functions, `dataInput` and `calcTable`, return the changing data which are needed to produce the outputs. Then, the outputs (plot, table and map) are created. Therefore, the returned changed input data from `dataInput()` is further processed for the `output$tabGraph` via an `if else` statement and plotting commands using `ggplot()`. The return of the `calcTable`-function gets passed to the `output$tabTable` to create the respective table. In a last step, `output$tabMap`, the map is created via `leaflet` which allows the user to zoom in and out and have a closer look at the different eezs. The map is produced each time `dataInput$data_map` changes. The basis for the map is a shapefile of worldwide EEZs provided by the Marine Regions Geodatabase ([www.marineregions.org](www.marineregions.org)), which is managed by the Flanders Marine Institute. The map produced here uses the version of 2014. Because neither the ids nor the country names correspond completely with the names of the searoundus data, the latter were adjusted manually. After this correction, the EEZ id of the SAU data could be added to the shapefile and be used as a key for merging. The SAU database contains 280 EEZs, while the Marine Regions database has only 249 EEZs. Because some zones within one database are split up into different zones in the other database or are missing, the zones shown in the map are reduced to 205 after the merge. 
+
+The Shiny App is run via the command `shinyApp(ui = ui, server = server)`. The whole code for the Shiny App can be found in Appendix B.
 
 # Results
 
