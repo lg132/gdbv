@@ -120,7 +120,7 @@ server <- function(input, output) {
         summarise(avg=mean(discards/(landings+discards))*100)
       
       #summarise the Russia EEZs:
-      data_map$avg[which(data_map$sau_id == 648)] <-sum(data_map$avg[which(data_map$sau_id %in% c(648,645,647,649,912,913))])
+      data_map$avg[which(data_map$sau_id == 648)] <-mean(data_map$avg[which(data_map$sau_id %in% c(648,645,647,649,912,913))])
       
       #classes for EEZ-map
       title_map <- "Discards in %"
