@@ -2,7 +2,6 @@ library(shiny)
 library(ggplot2)
 library(tidyverse)
 library(sf)
-#library(rgdal)
 library(leaflet)
 
 
@@ -11,14 +10,10 @@ df_total_catch <- read.delim("df_total_catch")
 df_discards <- read.delim("df_discards")
 df_eez <-read.delim("df_eez")
 sau_id <-read.delim("sau_id")
+eez_shp <- st_read("World_EEZ_v8_2014.shp")
 
-#eez_shp <- st_read("../../../../Dropbox/GeoVis/World_EEZ_v8_20140228_LR/World_EEZ_v8_2014.shp")
-eez_shp <- st_read("~/Dropbox/GeoVis/World_EEZ_v8_20140228_LR/World_EEZ_v8_2014.shp")
-#eez_shp <- readOGR("../../../../Dropbox/GeoVis/World_EEZ_v8_20140228_LR/World_EEZ_v8_2014.shp")
-
-#Add the SeeAroundUs EEZ Id  to the shapefile:
+#Add the SeeAroundUs EEZ Id to the shapefile: ----
 eez_shp_sau <- merge(eez_shp, sau_id, by="Country", all.x=T)
-#eez_shp_sau <- eez_shp_sau %>% dplyr::select(Country, EEZ, sau_id, Longitude, Latitude, geometry)
 
 # Define UI for seaaroundus app ----
 ui <- fluidPage(
