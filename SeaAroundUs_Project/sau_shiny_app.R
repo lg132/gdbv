@@ -10,7 +10,7 @@ df_total_catch <- read.delim("df_total_catch")
 df_discards <- read.delim("df_discards")
 df_eez <-read.delim("df_eez")
 sau_id <-read.delim("sau_id")
-eez_shp <- st_read("World_EEZ_v8_2014.shp")
+eez_shp <- st_read("World_EEZ_v8_20140228/World_EEZ_v8_2014.shp")
 
 #Add the SeeAroundUs EEZ Id to the shapefile: ----
 eez_shp_sau <- merge(eez_shp, sau_id, by="Country", all.x=T)
