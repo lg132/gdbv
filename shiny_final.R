@@ -163,7 +163,7 @@ server <- function(input, output) {
         geom_area(aes(fill=factor(country, levels=c(data_arranged[c(1:number),]$country, "Others"))))+
         theme(legend.position = "right")+
         guides(fill=guide_legend(title="countries"))+
-        labs(title = "Total catch grouped by country, ordered descendingly by average per year")
+        labs(title = "Total catch grouped by country (ordered descendingly by average per year)")
     }
     else {
       data <- data %>%
