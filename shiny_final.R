@@ -121,8 +121,9 @@ server <- function(input, output) {
     
     data_table <- dataInput()$data_table
     
+    #sorting the tables by average values (from highest to lowest), take only the selected table length:
+    
     if(input$type=="total catch"){
-      #sorting the table by average catch (from highest to lowest), take only the selected number 
       data_table <- arrange(data_table, desc(avg))[c(1:input$table_len),]
       colnames(data_table) <- c("country", "average catch per year in tons")
     }
@@ -139,7 +140,10 @@ server <- function(input, output) {
   output$areaPlot <- renderPlot({
     
     data <- dataInput()$data_plot
-    number <- as.integer(dataInput()$number)
+    number <- as.integer(dataInput()$number) #the number of countries shown in the graph 
+    
+    # - prepare the data frames for ggplot, summarise the countries with lower averages to "others"
+    # - plot as stacked plot
     
     if (input$type == "total catch"){
       
@@ -189,6 +193,7 @@ server <- function(input, output) {
     
     data_map <- dataInput()$data_map
 
+    #merge the average values (total catch or percentage of discards) and the shapefile:
     eez_merge <- merge(eez_shp_sau, data_map, by="sau_id", all.x=T)
 
     tm_shape(eez_merge, fill="avg")+
