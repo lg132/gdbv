@@ -12,8 +12,8 @@ df_Q2 <- read.delim("df_Q2")
 df_eez <-read.delim("df_eez")
 
 saui <-read.delim("sau_eez_felix.txt")
-names(saui)[1] <- "Country"
-eez_shp <- st_read("../../../../Dropbox/GeoVis/World_EEZ_v8_20140228_LR/World_EEZ_v8_2014.shp")
+
+#eez_shp <- st_read("../../../../Dropbox/GeoVis/World_EEZ_v8_20140228_LR/World_EEZ_v8_2014.shp")
 eez_shp_sau <- merge(eez_shp, saui[, -2], by="Country", all.x=T) %>% dplyr::select(Country, EEZ, sau_id, Longitude, Latitude, geometry)
 eez_shp_sau <- eez_shp_sau %>% dplyr::select(Country, EEZ, sau_id, Longitude, Latitude, geometry)
 
