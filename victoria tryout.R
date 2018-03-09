@@ -178,3 +178,13 @@ write.table(df_fishing_all, "df_total_catch", sep="\t")
 #==========df_eez
 eez <- listregions(region="eez")
 
+eezbla <- df_eez %>% group_by(sau_id) %>% summarise(avg=mean(landings+discards))
+
+data_map <- df_eez %>%
+  filter(years>=range[1], years<=range[2]) %>% group_by(sau_id) %>%
+  summarise(avg=mean(landings+discards))
+
+which(eezbla$sau_id == 648)
+
+#sum up Russia 
+eezbla$avg[which(eezbla$sau_id == 648)] <-sum(eezbla$avg[which(eezbla$sau_id %in% c(648,645,647,649,912,913))])
