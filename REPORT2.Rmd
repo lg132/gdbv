@@ -86,6 +86,7 @@ for (i in 2:length(countryids)){
 }
 ```
 
+The shapefile of the worldwide EEZs was provided by the Marine Regions Geodatabase ([www.marineregions.org](www.marineregions.org)), which is managed by the Flanders Marine Institute. The map in the shiny app uses the version of 2014. Because neither the ids nor the country names correspond completely with the names of the SeaAroundUs data, the latter were adjusted manually. After this correction, the EEZ id of the SAU data could be added to the shapefile and be used as a key for merging. The SAU database contains 280 EEZs, while the Marine Regions database has only 249 EEZs. Because some zones within one database are split up into different zones in the other database or are missing, the zones shown in the map are reduces to 205 after the merge. 
 
 ## Visualisation
 
