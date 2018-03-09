@@ -6,15 +6,15 @@ library(sf)
 
 
 #read in data: ----
-df_fishing_all <- source("df_fishing_all.Rdmpd")
-df_fishing_all <- df_fishing_all[[1]]
-df_Q2 <- read.delim("df_Q2")
+df_total_catch <- read.delim("df_total_catch")
+df_discards <- read.delim("df_discards")
 df_eez <-read.delim("df_eez")
-
-saui <-read.delim("sau_eez_felix.txt")
+sau_id <-read.delim("sau_id")
 
 #eez_shp <- st_read("../../../../Dropbox/GeoVis/World_EEZ_v8_20140228_LR/World_EEZ_v8_2014.shp")
-eez_shp_sau <- merge(eez_shp, saui[, -2], by="Country", all.x=T) %>% dplyr::select(Country, EEZ, sau_id, Longitude, Latitude, geometry)
+
+#Add the SeeAroundUs EEZ Id  to the shapefile:
+eez_shp_sau <- merge(eez_shp, sau_id, by="Country", all.x=T) %>% dplyr::select(Country, EEZ, sau_id, Longitude, Latitude, geometry)
 eez_shp_sau <- eez_shp_sau %>% dplyr::select(Country, EEZ, sau_id, Longitude, Latitude, geometry)
 
 # Define UI for seaaroundus app ----
@@ -30,7 +30,7 @@ ui <- fluidPage(
     sidebarPanel(
       
       # Input: Select-option for type of information in plots ----
-      selectInput(inputId = "dim",
+      selectInput(inputId = "type",
                   label = "Select type",
                   choices = c("total catch", "discards")),
       
@@ -76,9 +76,9 @@ server <- function(input, output) {
   # First reactive function returning basis for plots and tables (output 1 and 2)
   dataInput <- reactive({
     
-    data <- switch(input$dim,
-                   "total catch" = df_fishing_all,
-                   "discards" = df_Q2)
+    data <- switch(input$type,
+                   "total catch" = df_total_catch,
+                   "discards" = df_discards)
     
     range <- input$range
     
@@ -86,7 +86,7 @@ server <- function(input, output) {
     
     data_plot <- data %>% filter(years>=range[1], years<=range[2])
     
-    if(input$dim == "total catch"){
+    if(input$type == "total catch"){
       data_table <- data_plot %>% gather(., key="country", value="tonnage", -c(years)) %>%
         group_by(country) %>% summarise(avg=sum(tonnage))
       data_map <- df_eez %>%
@@ -111,7 +111,7 @@ server <- function(input, output) {
     
     data_table <- dataInput()$data_table
     
-    if(input$dim=="total catch"){
+    if(input$type=="total catch"){
       data_table <- arrange(data_table, desc(avg))[c(1:input$table_len),]
       colnames(data_table) <- c("country", "average catch per year in tons")
     }
@@ -130,7 +130,7 @@ server <- function(input, output) {
     data <- dataInput()$data_plot
     number <- as.integer(dataInput()$number)
     
-    if (input$dim == "total catch"){
+    if (input$type == "total catch"){
       
       data <- data %>% gather(., key="country", value="tonnage", -c(years)) 
       
