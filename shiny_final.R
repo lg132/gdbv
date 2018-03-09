@@ -1,8 +1,9 @@
 library(shiny)
 library(ggplot2)
 library(tidyverse)
-library(tmap)
 library(sf)
+library(rgdal)
+library(leaflet)
 
 
 #read in data: ----
