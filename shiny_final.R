@@ -216,24 +216,23 @@ server <- function(input, output) {
 
     #merge the average values (total catch or percentage of discards) and the shapefile:
     eez_merge <- merge(eez_shp_sau, data_map, by="sau_id", all.x=T)
-
+    
+    #define color-scale and labels for map
     pal <- colorNumeric("Reds", domain = eez_merge$avg)
-    labels_map <- sprintf(
+    labels <- sprintf(
       "<strong>%s</strong><br/>%g",
       eez_merge$EEZ, eez_merge$avg) %>% lapply(htmltools::HTML)
     
-    leaflet(options = leafletOptions(minZoom = 1, maxZoom = 10)) %>% 
+    #create interactive map with leaflet
+    leaflet(options = leafletOptions(minZoom = 2, maxZoom = 10)) %>% 
       addTiles() %>% 
       setView(lng = 0, lat = 40, zoom = 2) %>% 
       addProviderTiles("Stamen.TerrainBackground") %>%
       addPolygons(data=eez_merge, stroke = TRUE, color = ~pal(eez_merge$avg),
                   fillOpacity = 0.6, smoothFactor = 1, weight = 0.5,  
                   highlightOptions = highlightOptions(color = "black", weight = 2, bringToFront = TRUE),
-                  label = labels_map) %>% 
+                  label = labels) %>% 
       addLegend("bottomright", pal=pal, values= eez_merge$avg, title = title_map)
-
-    #tm_shape(eez_merge, fill="avg")+
-    #  tm_fill("avg", palette = "Blues", n=5, style = "jenks", legend.hist = T)
   })
 }
 

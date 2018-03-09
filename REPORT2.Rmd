@@ -1,7 +1,7 @@
 ---
-title: "seaaroundus"
+title: "SeaAroundUs"
 author: "Leonie Grau, Felix Rentschler, Victoria Kolodziej"
-date: "9 März 2018"
+date: "March 9, 2018"
 output:
   html_document:
     toc: yes
