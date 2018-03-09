@@ -403,7 +403,7 @@ library(rgdal)
 library(ggplot2)
 library(tidyverse)
 
-sfn = readOGR("/Users/Fex/Dropbox/GeoVis/World_EEZ_v8_20140228_LR/World_EEZ_v8_2014.shp")#%>% spTransform(CRS("+proj=longlat +datum=WGS84"))
+sfn = readOGR("/Users/Fex/Dropbox/GeoVis/World_EEZ_v8_20140228_LR/World_EEZ_v8_2014.shp")%>% spTransform(CRS("+proj=longlat +datum=WGS84"))
 #sfn.f = sfn %>% fortify(region = "avg")
 #eez_merge <- merge(sfn, saui, by="Country", all.x=T)
 sfn2 <- merge(sfn, saui, by="Country", all.x=T)
@@ -419,16 +419,33 @@ leaflet(eez_merge) %>%
   addPolygons(
     stroke = FALSE, # remove polygon borders
     fillColor = ~pal_fun(eez_merge$avg), # set fill color with function from above and value
-    fillOpacity = 0.8, smoothFactor = 0.5)#,
+    fillOpacity = 1, smoothFactor = 0.5)#,
    # highlightOptions = highlightOptions(color = "black", weight = 2, bringToFront = TRUE)) %>%   
   addLegend("bottomright", pal = pal_fun, values = ~avg, title = "Discards", opacity = 1)
 
     
 pal_fun <- colorQuantile("Blues", n = 4, domain = sfn2$avg, alpha=1.2)
-leaflet(sfn2)  %>% addTiles() %>% 
-  #setView(sfn2, min(sfn2$Longitude), min(sfn2$Latitude), max(sfn2$Longitude), max(sfn2$Latitude)) %>% 
-  addProviderTiles("OpenSeaMap") %>%
-  addPolygons(stroke = FALSE, fillColor = ~pal_fun(sfn2$avg),
-              fillOpacity = 0.8, smoothFactor = 0.5) %>% 
-  addLegend("bottomright", pal=pal_fun, values= sfn2$avg, title = 'Discards')
+binpal <- colorBin("Blues", sfn2$avg, 4, pretty = FALSE, alpha=1.2)
+pal <- colorNumeric(palette = "Blues", domain = sfn2$avg, alpha=1.2)
 
+labels <- sprintf(
+  "<strong>%s</strong><br/>%g tonnage",
+  sfn2$EEZ, sfn2$avg) %>% lapply(htmltools::HTML)
+
+leaflet(sfn2, options = leafletOptions(minZoom = 1, maxZoom = 10)) %>%
+  addTiles() %>% 
+  clearBounds() %>%  
+  setView(lng = 0, lat = 40, zoom = 2) %>% 
+  addProviderTiles("Stamen.TerrainBackground") %>%
+  addPolygons(data=sfn2, stroke = TRUE, color = ~binpal(sfn2$avg),
+              fillOpacity = 0.5, smoothFactor = 1, weight = 0.5,  
+              highlightOptions = highlightOptions(color = "black", weight = 2, bringToFront = TRUE),
+              label = labels) %>% 
+ addLegend("bottomright", pal=binpal, values= sfn2$avg, title = 'Discards')
+          #  labelOptions = labelOptions(
+                #style = list("font-weight" = "normal", padding = "3px 8px"),
+             #   textsize = "15px",
+              #  direction = "auto")) %>% 
+ # addLegend("bottomright", pal = pal_fun, values = ~sfn2$avg,title = "blabla", opacity = 2) 
+
+#world_map <- SpatialPolygonsDataFrame(eez_merge,stringsAsFactors=FALSE)
