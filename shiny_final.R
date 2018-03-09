@@ -163,7 +163,7 @@ server <- function(input, output) {
         geom_area(aes(fill=factor(country, levels=c(data_arranged[c(1:number),]$country, "Others"))))+
         theme(legend.position = "right")+
         guides(fill=guide_legend(title="countries"))+
-        labs(title = "Total catch grouped by country (ordered descendingly by average per year)")
+        labs(title = "Total catch grouped by country (ordered descendingly by average)")
     }
     else {
       data <- data %>%
@@ -179,7 +179,7 @@ server <- function(input, output) {
       ggplot(data=data_high, aes(x=years, y=perc_disc, colour=country))+
         geom_line(size=1.3)+
         theme(legend.position = "right")+
-        labs(title = "Share of discards in total catch (grouped by country, ordered descendingly by average per year", y = "percentage")
+        labs(title = "Share of discards in total catch (grouped by country, ordered descendingly by average)", y = "percentage")
     }
   })
   
